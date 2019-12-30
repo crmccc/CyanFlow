@@ -15,6 +15,7 @@ public:
     Matrix(int, int);
     Matrix operator*(const Matrix &);
     void operator=(const Matrix &);
+    complex<double>*& operator[](int i);
     
     ~Matrix();
 };
@@ -50,6 +51,9 @@ Matrix Matrix::operator*(const Matrix &b)
     }
     return res;
 }
+complex<double>*& Matrix::operator[](int i){
+    return data[i];
+}
 
 complex<double> **Matrix::make_a_matrix(int x, int y)
 {
@@ -78,4 +82,5 @@ Matrix::~Matrix()
         delete[] data[x];
     }
     delete[] data;
+    data=NULL;
 }
