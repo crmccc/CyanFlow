@@ -3,14 +3,6 @@
 int main (){
     Matrix a(100,100);
     Matrix b(100,100);
-    a.data[0][0]=1;
-    a.data[0][1]=2;
-    a.data[1][0]=3;
-    a.data[1][1]=4;
-    b.data[0][0]=1;
-    b.data[0][1]=2;
-    b.data[1][0]=3;
-    b.data[1][1]=4;
     Matrix c(100,100);
     c=a*b;
     printf("%f %f\n%f %f\n\n",a.data[0][0].real(),a.data[0][1].real(),a.data[1][0].real(),a.data[1][1].real());

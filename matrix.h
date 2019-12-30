@@ -43,7 +43,7 @@ Matrix Matrix::operator*(const Matrix &b)
     {
         for (int j = 0; j < res.y_length; j++)
         {
-            for (int k = 1; k < y_length; k++)
+            for (int k = 0; k < y_length; k++)
             {
                 res.data[i][j] = data[i][k] * b.data[k][j]+res.data[i][j];
             }
