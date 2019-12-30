@@ -12,11 +12,12 @@ public:
     complex<double> **data;
     int x_length = 0;
     int y_length = 0;
-    Matrix(int, int);
+    
     Matrix operator*(const Matrix &);
     void operator=(const Matrix &);
     complex<double>*& operator[](int i);
     
+    Matrix(int, int);
     ~Matrix();
 };
 
@@ -26,11 +27,11 @@ public:
 //|
 //also fixed length
 void Matrix::operator=(const Matrix &b){
-    for (int x = 0; x < x_length; ++x)
-    {
-        delete[] data[x];
-    }
-    delete[] data;
+    // for (int x = 0; x < x_length; ++x)
+    // {
+    //     delete[] data[x];
+    // }
+    // delete[] data;
     data=b.data;
     x_length=b.x_length;
     y_length=b.y_length;
@@ -71,8 +72,6 @@ Matrix::Matrix(int x, int y)
     x_length = x;
     y_length = y;
     data = make_a_matrix(x, y);
-    y_length = y;
-
 }
 
 Matrix::~Matrix()
