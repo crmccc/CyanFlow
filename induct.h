@@ -1,10 +1,10 @@
 #ifndef _GLIBCXX_MAP
-#include<map>
+#include <map>
 #endif
 #ifndef _GLIBCXX_COMPLEX
-#include<complex>
+#include <complex>
 #endif
-#include<map>
+#include <map>
 #ifndef MAX_NODE_NUMBER
 #define MAX_NODE_NUMBER 100
 #endif
@@ -25,29 +25,45 @@ class induct
 private:
     /* data */
 public:
-    map<int,complex<double>> inductance;
+    map<int, complex<double>> inductance[];
+    bool **book;
+    int node_number;
 
-    int add_line(complex<double> i,int a,int b);
-    
-    complex<double>& operator[](int i);
-    
-    induct(/* args */);
+    int add_line(complex<double> i, int a, int b);
+
+    map<int, complex<double>> &operator[](int i);
+
+    induct(int);
     ~induct();
 };
-complex<double>& induct::operator[](int i){
+map<int, complex<double>> &induct::operator[](int i)
+{
     return inductance[i];
 }
-int induct::add_line(complex<double> i,int a,int b){
-    inductance[a]-=i;
-    inductance[b]=inductance[a];
-    inductance[a]+=i;
-    inductance[b]+=i;
+int induct::add_line(complex<double> i, int a, int b)
+{
+    inductance[a][b] -= i;
+    inductance[b][a] = inductance[a][b];
+    inductance[a][a] += i;
+    inductance[b][b] += i;
+    book[a][b] = book[b][a] = 1; //! self-self will not be counted.
     return 0;
 }
-induct::induct(/* args */)
+induct::induct(int node_number) : node_number(node_number)
 {
+    book = new bool *[node_number];
+    for (int i = 0; i < node_number; ++i)
+    {
+        book[i] = new bool[node_number];
+        memset(book[i], 0, node_number * sizeof(bool));
+    }
 }
 
 induct::~induct()
 {
+    for (int i = 0; i < node_number; ++i)
+    {
+        delete[] book[i];
+    }
+    delete[] book;
 }
