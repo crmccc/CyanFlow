@@ -2,6 +2,7 @@
     "files.associations": {
         "complex": "cpp",
         "new": "cpp",
-        "system_error": "cpp"
+        "system_error": "cpp",
+        "map": "cpp"
     }
 }
