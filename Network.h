@@ -4,7 +4,6 @@
 #define MAX_NODE_NUMBER 100
 #endif
 //some compromise
-using namespace std;
 using Eigen::MatrixXd;
 /*
 *class Network.
@@ -21,7 +20,6 @@ public:
         double f;
         /* data */
     };
-    
     int pv_node_number=0;
     int pq_node_number=0;
     int num_number=0;
