@@ -1,9 +1,11 @@
 #include<complex>
-#include<map>
-#include<list>
-#include<vector>
+#include"Eigen/Dense"
+#ifndef MAX_NODE_NUMBER
+#define MAX_NODE_NUMBER 100
+#endif
 //some compromise
 using namespace std;
+using Eigen::MatrixXd;
 /*
 *class Network.
 *storage network conductance
@@ -13,36 +15,37 @@ class Network
 private:
     /* data */
 public:
-    const int MAX_NODE_NUMBER=100; 
-    complex<double> data[MAX_NODE_NUMBER][MAX_NODE_NUMBER];
-    int line_number=0;
-    int node_number=0;
+    struct node_u
+    {
+        double e;
+        double f;
+        /* data */
+    };
+    
+    int pv_node_number=0;
+    int pq_node_number=0;
+    int num_number=0;
+    
+    node_u u [MAX_NODE_NUMBER];
+    induct induct_network;
+    Matrix<double,MAX_NODE_NUMBER,MAX_NODE_NUMBER> jacobi;
 
-    int add_node(vector<map<int,double>>);
+    int init_network(int node_number);
     
     Network(/* args */);
     ~Network();
 };
-
-
+int Network::init_network(int node_number){
+    for(int i=0;i<node_number;++i){
+        u[node_number].e=1.0;
+        u[node_number].f=0.0;
+        
+    }
+}
 Network::Network(/* args */)
 {
 }
 
 Network::~Network()
 {
-}
-
-int Network::add_node(vector<map<int,double>> conduct){
-//return -1 for data out of range
-//reutrn 0 for normal exit
-    if (this.node_number>=this.MAX_NODE_NUMBER){
-        return -1;
-    }
-    ++this.node_number;
-    int i=0;
-    for(auto it=conduct.begin();it!=conduct.end()-1;++it){
-        data[i][node_number]=data[node_number][i]+=
-        ++i;
-    }
 }
