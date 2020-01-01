@@ -1,60 +1,90 @@
 #include "Eigen/Eigen"
 #include "induct.h"
 
+#include<cmath>
 #ifndef _GLIBCXX_COMPLEX
 #include <complex>
 #endif
 
-#ifndef MAX_NODE_NUMBER
-#define MAX_NODE_NUMBER 100
-#endif
+//ya,I know that looks stupid, but it SHUANG SI LE.
+
 #define GII induct_network[i][i].imag
 #define GIJ induct_network[i][j].imag
 #define BII induct_network[i][i].real
 #define BIJ induct_network[i][j].real
-#define EI node[i].u.real
-#define EJ node[j].u.real
-#define FI node[i].u.imag
-#define FJ node[j].u.imag
+#define EI node[i].e
+#define EJ node[j].e
+#define FI node[i].f
+#define FJ node[j].f
 #define EXIST(i, j) induct_network.book[i][j]
+#define LOCAL_INF 114514
 
 using namespace Eigen;
 using std::complex;
 /*
 *class Network.
-*storage network conductance
+*OOP
 */
 //!this flow calculate library obey "first PQ then PV" arrange.
+//!balance node must be the last one 
 class Network
 {
 private:
 public:
+    /*data*/
     struct node_arg
     {
         double p = 0.0;
         double q = 0.0;
-        complex<double> u = 1.0;
+        double e=1.0;
+        double f=0.0;
+        complex<double> u;
     };
 
     int pv_node_number = 0;
     int pq_node_number = 0;
-    int node_number = 0;
+    int matrix_length = 0;
+    int node_number=0;
 
     induct induct_network;
-    MatrixXcd jacobi;
-    MatrixXcd delta_y;
-    MatrixXcd delta_x;
-    node_arg node[]; //the potiential of nodes
+    MatrixXd jacobi;
+    MatrixXd delta_y;
+    MatrixXd delta_x;
+    double delta_e_max = LOCAL_INF; //!1 1 4 5 1 4!
+    double delta_f_max = LOCAL_INF; //!1 1 4 5 1 4!
+    node_arg node[];                //? nodes
 
+    /*function*/
     void gen_delta_y();
     void gen_delta_x();
     void gen_jacobi();
+    double get_e_delta_max();
+    double get_f_delta_max();
 
     void init_network(int num_number);
     Network(int, int, int);
     ~Network();
 };
-
+double Network::get_f_delta_max()
+{
+    /////todo work in prograss
+    double res = delta_x(0,0);
+    for (int i=0;i<matrix_length;i+=2){
+        if (delta_x(i,0)>res)
+            res=delta_x(i,0);
+    }
+    return res;
+}
+double Network::get_e_delta_max()
+{
+    /////todo work in prograss
+    double res = delta_x(0,0);
+    for (int i=1;i<matrix_length;i+=2){
+        if (delta_x(i,0)>res)
+            res=delta_x(i,0);
+    }
+    return res;
+}
 void Network::gen_delta_y()
 {
     auto get_p_delta = [&](int i) {
@@ -73,9 +103,10 @@ void Network::gen_delta_y()
         }
         return res;
     };
-    auto get_u_delta = [&](int i) { return -2 * FI * FI - 2 * EI * FI * i; }; // optimalized
+    //!issue s in get u delta
+    auto get_u_delta = [&](int i) { return sqrt(node[i].u.real*node[i].u.real+node[i].u.imag*node[i].u.imag); }; //! something wrong 
 
-    for (int i = 0; i < node_number; i += 2)
+    for (int i = 0; i < matrix_length; i += 2)
     {
         if (i < pq_node_number) //?PQ nodes.
         {
@@ -102,7 +133,7 @@ void Network::gen_jacobi()
     ////tobedone
     auto get_a_ii = [&](int i) {
         double sum = GII * EI - BII * FI;
-        for (int j = 0; j < node_number; ++j)
+        for (int j = 0; j < matrix_length; ++j)
         {
             if (EXIST(i, j))
             {
@@ -113,7 +144,7 @@ void Network::gen_jacobi()
     };
     auto get_b_ii = [&](int i) {
         double sum = GII * FI + BII * EI;
-        for (int j = 0; j < node_number; ++j)
+        for (int j = 0; j < matrix_length; ++j)
         {
             if (EXIST(i, j))
             {
@@ -125,11 +156,11 @@ void Network::gen_jacobi()
 
     int k = pq_node_number;
 
-    for (int i = 0; i < node_number; i += 2)
+    for (int i = 0; i < matrix_length; i += 2)
     {
         double a = get_a_ii(i);
         double b = get_b_ii(i);
-        for (int j = 0; j < node_number; j += 2)
+        for (int j = 0; j < matrix_length; j += 2)
         {
             auto get_h_ij = [&](int i, int j) { return EXIST(i, j) ? -BIJ * EI + GIJ * FI : 0; };
             auto get_j_ij = [&](int i, int j) { return EXIST(i, j) ? GIJ * EI + BIJ * FI : 0; };
@@ -186,10 +217,10 @@ void Network::init_network(int num_number)
 {
     return;
 }
-Network::Network(int pv, int pq, int total) : node_number(total), pv_node_number(pv), pq_node_number(pq), induct_network(total),
-                                              jacobi((2 * total - 2), (2 * total - 2)), delta_x(2 * total - 2, 1), delta_y(2 * total - 2, 1)
+Network::Network(int pv, int pq, int total) : matrix_length(2*total-2), pv_node_number(pv), pq_node_number(pq), induct_network(total),node_number(total),
+                                              jacobi(matrix_length,matrix_length), delta_x(matrix_length, 1), delta_y(2 * total - 2, 1)
 {
-    init_network(node_number);
+    init_network(matrix_length);
 }
 Network::~Network()
 {

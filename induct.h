@@ -4,14 +4,10 @@
 #ifndef _GLIBCXX_COMPLEX
 #include <complex>
 #endif
-#include <map>
-#ifndef MAX_NODE_NUMBER
-#define MAX_NODE_NUMBER 100
-#endif
 
 using std::complex;
 using std::map;
-//!IMPORTANT!
+
 //!THE FIRST NODE IS MARKED AS 0,NOT 1!
 /*
 *
@@ -40,12 +36,12 @@ map<int, complex<double>> &induct::operator[](int i)
 {
     return inductance[i];
 }
-int induct::add_line(complex<double> i, int a, int b)
+int induct::add_line(complex<double> ind, int a, int b)
 {
-    inductance[a][b] -= i;
+    inductance[a][b] -= ind;
     inductance[b][a] = inductance[a][b];
-    inductance[a][a] += i;
-    inductance[b][b] += i;
+    inductance[a][a] += ind;
+    inductance[b][b] += ind;
     book[a][b] = book[b][a] = 1; //! self-self will not be counted.
     return 0;
 }
