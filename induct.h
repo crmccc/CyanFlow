@@ -5,6 +5,8 @@
 #include <complex>
 #endif
 #include<cstring>
+#include<vector>
+using std::vector;
 using std::complex;
 using std::map;
 
@@ -22,21 +24,24 @@ private:
     /* data */
 public:
     
-    bool **book;
+    // bool **book;
+    bool book[100][100]{0};
     int node_number;
-    map<int, complex<double>>* inductance;
-
-    int add_line(complex<double> , int , int );
-    map<int, complex<double>> &operator[](int i);
+    // vector<map<int, complex<double>>> inductance;
+    // complex<double>** inductance;
+    complex<double> inductance[100][100];
+    
+    int add_line(complex<double>& , int , int );
+    complex<double>* operator[](int i);
 
     induct(int);
     ~induct();
 };
-map<int, complex<double>> &induct::operator[](int i)
+complex<double>* induct::operator[](int i)
 {
     return inductance[i];
 }
-int induct::add_line(complex<double> ind, int a, int b)
+int induct::add_line(complex<double>& ind, int a, int b)
 {
     inductance[a][b] -= ind;
     inductance[b][a] = inductance[a][b];
@@ -47,22 +52,22 @@ int induct::add_line(complex<double> ind, int a, int b)
 }
 induct::induct(int node_number) : node_number(node_number)
 {
-    book = new bool* [node_number];
-    inductance = new map<int,complex<double>>[node_number];
-    for (int i = 0; i < node_number; ++i)
+    // book = new bool* [node_number];
+    // inductance = new complex<double> *[node_number];
+    // for (int i = 0; i < node_number; ++i)
     {
-        book[i] = new bool[node_number]{0};
+        // inductance[i]=new complex<double> [node_number];
+        // book[i] = new bool[node_number]{0};
         // memset(book[i], 0, node_number * sizeof(bool));
     }
 }
 
 induct::~induct()
 {
-    for (int i = 0; i < node_number; ++i)
-    {
-        delete[] book[i];
-    }
-    delete[] book;
-    delete[] inductance;
+    // for (int i = 0; i < node_number; ++i)
+    // {
+        // delete[] book[i];
+    // }
+    // delete[] book;
 
 }

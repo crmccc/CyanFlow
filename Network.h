@@ -44,11 +44,8 @@ public:
         double q = 0.0;
         double e = 1.0;
         double f = 0.0;
-        double r = 0;
-        double angle=0;;
         Node_type type;
 
-        complex<double> u;
     };
 
     int pv_node_number = 0;
@@ -68,6 +65,7 @@ public:
     void gen_delta_y();
     void gen_delta_x();
     void gen_jacobi();
+    void set_node_u(int );
     double get_e_delta_max();
     double get_f_delta_max();
 
@@ -75,6 +73,12 @@ public:
     Network(int, int, int);
     ~Network();
 };
+void Network::set_node_u(int balance_node){
+    for(int i=0;i<node_number;++i){
+        node[i].e=node[balance_node].e;
+        node[i].f=node[balance_node].f;
+    }
+}
 double Network::get_f_delta_max()
 {
         /////todo work in prograss
@@ -121,13 +125,13 @@ void Network::gen_delta_y()
     {
         if (i < pq_node_number) //?PQ nodes.
         {
-            delta_y[i] = get_p_delta(i);
-            delta_y[i + 1] = get_q_delta(i);
+            delta_y(i) = get_p_delta(i);
+            delta_y(i + 1) = get_q_delta(i);
         }
         else //? PV nodes
         {
-            delta_y[i] = get_p_delta(i);
-            delta_y[i + 1] = get_u_delta(i);
+            delta_y(i) = get_p_delta(i);
+            delta_y(i + 1) = get_u_delta(i);
         }
     }
 
