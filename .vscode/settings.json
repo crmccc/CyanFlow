@@ -3,7 +3,8 @@
         "complex": "cpp",
         "new": "cpp",
         "system_error": "cpp",
-        "map": "cpp"
+        "map": "cpp",
+        "iostream": "cpp"
     },
     "C_Cpp.default.cppStandard": "c++11",
     "C_Cpp.default.cStandard": "c11",

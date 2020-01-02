@@ -44,14 +44,25 @@ public:
         double q = 0.0;
         double e = 1.0;
         double f = 0.0;
-        Node_type type;
+        double r;
+        double angle;
 
+        double e_balance()
+        {
+            return r * cos(angle);
+        }
+        double f_balance()
+        {
+            return r * sin(angle);
+        }
+        Node_type type;
     };
 
     int pv_node_number = 0;
     int pq_node_number = 0;
     int matrix_length = 0;
     int node_number = 0;
+    int balance_no;
 
     induct induct_network;
     MatrixXd jacobi;
@@ -65,7 +76,9 @@ public:
     void gen_delta_y();
     void gen_delta_x();
     void gen_jacobi();
-    void set_node_u(int );
+    void renew_node_u();
+    void set_node_u(int);
+    void set_node_u();
     double get_e_delta_max();
     double get_f_delta_max();
 
@@ -73,21 +86,39 @@ public:
     Network(int, int, int);
     ~Network();
 };
-void Network::set_node_u(int balance_node){
-    for(int i=0;i<node_number;++i){
-        node[i].e=node[balance_node].e;
-        node[i].f=node[balance_node].f;
+void Network::renew_node_u()
+{
+    for (int i = 0; i < node_number; ++i)
+    {
+        EI = delta_x(2 * i, 0);
+        FI = delta_x(2 * i + 1, 0);
     }
+    return;
+}
+void Network::set_node_u(int balance_node)
+{
+    for (int i = 0; i < node_number; ++i)
+    {
+        node[i].e = node[balance_node].e;
+        node[i].f = node[balance_node].f;
+    }
+}
+void Network::set_node_u()
+{
+    set_node_u(balance_no);
+
+    return;
 }
 double Network::get_f_delta_max()
 {
-        /////todo work in prograss
-    double res = delta_x(0,0);
+    /////todo work in prograss
+    double res = delta_x(0, 0);
     for (int i = 0; i < matrix_length; i += 2)
     {
         if (delta_x(i, 0) > res)
             res = delta_x(i, 0);
     }
+    delta_f_max = res;
     return res;
 }
 double Network::get_e_delta_max()
@@ -99,6 +130,7 @@ double Network::get_e_delta_max()
         if (delta_x(i, 0) > res)
             res = delta_x(i, 0);
     }
+    delta_e_max = res;
     return res;
 }
 void Network::gen_delta_y()
@@ -120,7 +152,7 @@ void Network::gen_delta_y()
         return res;
     };
     //!issue s in get u delta
-    auto get_u_delta = [&](int i)-> double{ return node[i].r*node[i].r-EI*EI-FI*FI;};
+    auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - EI * EI - FI * FI; };
     for (int i = 0; i < matrix_length; i += 2)
     {
         if (i < pq_node_number) //?PQ nodes.
@@ -139,7 +171,7 @@ void Network::gen_delta_y()
 }
 void Network::gen_delta_x()
 {
-    delta_x = delta_y.inverse() * delta_y;
+    delta_x = jacobi.inverse() * delta_y;
 
     return;
 }
@@ -232,7 +264,7 @@ void Network::init_network(int num_number)
 {
     return;
 }
-Network::Network(int pv, int pq, int total) : matrix_length(2 * total - 2), pv_node_number(pv), pq_node_number(pq), induct_network(total), node_number(total),
+Network::Network(int pv, int pq, int total) : balance_no(total-1), matrix_length(2 * total - 2), pv_node_number(pv), pq_node_number(pq), induct_network(total), node_number(total),
                                               jacobi(matrix_length, matrix_length), delta_x(matrix_length, 1), delta_y(2 * total - 2, 1)
 {
     init_network(matrix_length);
