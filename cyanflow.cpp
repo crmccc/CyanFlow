@@ -5,7 +5,8 @@
 #include <cmath>
 #include <iomanip>
 #include "Network.h"
-#define SHOW_WIDTH 8
+#define SHOW_WIDTH 5
+#define MAX_ITERATION 1000
 using namespace Eigen;
 using namespace std;
 
@@ -16,6 +17,7 @@ void log_show_delta_x(Network &);
 void log_show_delta_y(Network &);
 void log_show_current_precision(Network &);
 void log_show_voltage(Network &);
+void log_show_node_arg(Network &);
 int node_number{0};
 int pv_number{0};
 int pq_number{0};
@@ -70,29 +72,32 @@ int main()
             network.node[temp].type = Network::Node_type::balance;
         }
     }
+    fin.close();
     //start..
     network.set_node_u();
     int iteration = 1;
     log_show_inductance(network); //?debug
-    while (1)
+    log_show_node_arg(network);   //?debug
+    while (iteration<MAX_ITERATION)
     {
-        network.gen_delta_y();
         network.gen_jacobi();
+        network.gen_delta_y();
         network.gen_delta_x();
         network.get_f_delta_max();
         network.get_e_delta_max();
         cout << "interation:" << iteration << '\n'; //?debug
-        log_show_delta_x(network);                  //?debug
-        log_show_delta_y(network);                  //?debug
         log_show_jacobi(network);                   //?debug
         log_show_jacobi_inverse(network);           //?debug
+        log_show_delta_y(network);                  //?debug
+        log_show_delta_x(network);                  //?debug
         log_show_current_precision(network);        //?debug
-        log_show_voltage(network);
+        log_show_voltage(network);                  //?debug
         if (network.delta_e_max < precision && network.delta_f_max < precision)
         {
             break;
         }
         network.renew_node_u();
+        cout << "*******************************\n";
         ++iteration;
     }
 
@@ -108,7 +113,7 @@ void log_show_inductance(Network &net)
     {
         for (int j = 0; j < node_number; ++j)
         {
-            cout << net.induct_network[i][j] << ' ';
+            cout << setw(10)<< net.induct_network[i][j] << ' ';
         }
         cout << '\n';
     }
@@ -124,7 +129,7 @@ void log_show_jacobi(Network &net)
     {
         for (int j = 0; j < net.matrix_length; ++j)
         {
-            cout << net.jacobi(i, j) << ' ';
+            cout << setw(SHOW_WIDTH)<<setprecision(SHOW_WIDTH)<<net.jacobi(i, j) << ' ';
         }
         cout << '\n';
     }
@@ -172,7 +177,7 @@ void log_show_voltage(Network &net)
 }
 void log_show_jacobi_inverse(Network &net)
 {
-    auto& inv = net.jacobi.inverse();
+    auto &inv = net.jacobi.inverse();
 
     cout << setw(SHOW_WIDTH); //?debug
 
@@ -181,8 +186,24 @@ void log_show_jacobi_inverse(Network &net)
     {
         for (int j = 0; j < net.matrix_length; ++j)
         {
-            cout << inv(i, j) << ' ';
+            cout<< setw(SHOW_WIDTH)<<setprecision(SHOW_WIDTH)<<inv(i, j) << ' ';
         }
         cout << '\n';
     }
+}
+void log_show_node_arg(Network &net)
+{
+
+    int i = 0;
+    for (; i < pv_number; ++i)
+    {
+        cout << '[' << i << "]: p = " << net.node[i].p << " q = " << net.node[i].q << '\n';
+        cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
+    }
+    for (; i < node_number; ++i)
+    {
+        cout << '[' << i << "]: p = " << net.node[i].p << " r = " << net.node[i].r << '\n';
+        cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
+    }
+    return;
 }

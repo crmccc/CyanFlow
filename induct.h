@@ -25,7 +25,7 @@ private:
 public:
     
     // bool **book;
-    bool book[100][100]{0};
+    // bool book[100][100]{0};
     int node_number;
     // vector<map<int, complex<double>>> inductance;
     // complex<double>** inductance;
@@ -47,7 +47,7 @@ int induct::add_line(complex<double>& ind, int a, int b)
     inductance[b][a] = inductance[a][b];
     inductance[a][a] += ind;
     inductance[b][b] += ind;
-    book[a][b] = book[b][a] = 1; //! self-self will not be counted.
+    //// book[a][b] = book[b][a] = 1; //! self-self will not be counted.
     return 0;
 }
 induct::induct(int node_number) : node_number(node_number)

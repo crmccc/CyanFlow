@@ -6,6 +6,7 @@
 #include <complex>
 #endif
 #include <complex>
+#include <iostream>
 //ya,I know that looks stupid, but it SHUANG SI LE.
 
 #define GII induct_network[i][i].imag()
@@ -16,7 +17,6 @@
 #define EJ node[j].e
 #define FI node[i].f
 #define FJ node[j].f
-#define EXIST(i, j) induct_network.book[i][j]
 #define LOCAL_INF 114514
 
 using namespace Eigen;
@@ -88,10 +88,10 @@ public:
 };
 void Network::renew_node_u()
 {
-    for (int i = 0; i < node_number; ++i)
+    for (int i = 0; i < node_number - 1; ++i)
     {
-        EI = delta_x(2 * i, 0);
-        FI = delta_x(2 * i + 1, 0);
+        EI += delta_x(2 * i + 1, 0);
+        FI += delta_x(2 * i, 0);
     }
     return;
 }
@@ -112,11 +112,11 @@ void Network::set_node_u()
 double Network::get_f_delta_max()
 {
     /////todo work in prograss
-    double res = delta_x(0, 0);
+    double res = abs(delta_x(0, 0));
     for (int i = 0; i < matrix_length; i += 2)
     {
-        if (delta_x(i, 0) > res)
-            res = delta_x(i, 0);
+        if (abs(delta_x(i, 0)) > res)
+            res = abs(delta_x(i, 0));
     }
     delta_f_max = res;
     return res;
@@ -124,11 +124,11 @@ double Network::get_f_delta_max()
 double Network::get_e_delta_max()
 {
     /////todo work in prograss
-    double res = delta_x(1, 0);
+    double res = abs(delta_x(1, 0));
     for (int i = 1; i < matrix_length; i += 2)
     {
-        if (delta_x(i, 0) > res)
-            res = delta_x(i, 0);
+        if (abs(delta_x(i, 0)) > res)
+            res = abs(delta_x(i, 0));
     }
     delta_e_max = res;
     return res;
@@ -153,17 +153,17 @@ void Network::gen_delta_y()
     };
     //!issue s in get u delta
     auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - EI * EI - FI * FI; };
-    for (int i = 0; i < matrix_length; i += 2)
+    for (int i = 0; i < node_number - 1; ++i)
     {
         if (i < pq_node_number) //?PQ nodes.
         {
-            delta_y(i) = get_p_delta(i);
-            delta_y(i + 1) = get_q_delta(i);
+            delta_y(2 * i) = get_p_delta(i);
+            delta_y(2 * i + 1) = get_q_delta(i);
         }
         else //? PV nodes
         {
-            delta_y(i) = get_p_delta(i);
-            delta_y(i + 1) = get_u_delta(i);
+            delta_y(2 * i) = get_p_delta(i);
+            delta_y(2 * i + 1) = get_u_delta(i);
         }
     }
 
@@ -182,7 +182,7 @@ void Network::gen_jacobi()
         double sum = GII * EI - BII * FI;
         for (int j = 0; j < matrix_length; ++j)
         {
-            if (EXIST(i, j))
+            if (i != j)
             {
                 sum += GIJ * EJ - BIJ * FJ;
             }
@@ -193,7 +193,7 @@ void Network::gen_jacobi()
         double sum = GII * FI + BII * EI;
         for (int j = 0; j < matrix_length; ++j)
         {
-            if (EXIST(i, j))
+            if (i != j)
             {
                 sum += GIJ * FJ + BIJ * EJ;
             }
@@ -203,17 +203,17 @@ void Network::gen_jacobi()
 
     int k = pq_node_number;
 
-    for (int i = 0; i < matrix_length; i += 2)
+    for (int i = 0; i < node_number - 1; ++i)
     {
         double a = get_a_ii(i);
         double b = get_b_ii(i);
-        for (int j = 0; j < matrix_length; j += 2)
+        for (int j = 0; j < node_number - 1; ++j)
         {
-            auto get_h_ij = [&](int i, int j) -> double { return EXIST(i, j) ? -BIJ * EI + GIJ * FI : 0; };
-            auto get_j_ij = [&](int i, int j) -> double { return EXIST(i, j) ? GIJ * EI + BIJ * FI : 0; };
+            auto get_h_ij = [&](int i, int j) -> double { return -BIJ * EI + GIJ * FI; };
+            auto get_n_ij = [&](int i, int j) -> double { return GIJ * EI + BIJ * FI; };
             auto get_h_ii = [&](int i) -> double { return -BII * EI + GII * FI + b; };
             auto get_n_ii = [&](int i) -> double { return GII * EI + BII * FI + a; };
-            auto get_j_ii = [&](int i) -> double { return -GII * EI - BII * FI + a; };
+            auto get_j_ii = [&](int i) -> double { return -GII * EI - BII * FI + a; }; //!@
             auto get_l_ii = [&](int i) -> double { return -BII * EI + GII * FI - b; };
             auto get_r_ii = [&](int i) -> double { return 2 * FI; };
             auto get_s_ii = [&](int i) -> double { return 2 * EI; };
@@ -224,17 +224,17 @@ void Network::gen_jacobi()
                 if (i != j) //?non-diag
                 {
                     /////!this can be rewriten as inline function to make it look batter.
-                    jacobi(i, j) = get_h_ij(i, j);        //? witch is H_ij
-                    jacobi(i + 1, j) = get_j_ij(i, j);    //? witch is N_ij
-                    jacobi(i, j + 1) = -jacobi(i + 1, j); //? witch is J_ij
-                    jacobi(i + 1, j + 1) = jacobi(i, j);  //? witch is L_ij
+                    jacobi(2 * i, 2 * j) = get_h_ij(i, j);                //? witch is H_ij
+                    jacobi(2 * i, 2 * j + 1) = get_n_ij(i, j);            //? witch is N_ij
+                    jacobi(2 * i + 1, 2 * j) = -jacobi(2 * i, 2 * j + 1); //? witch is J_ij
+                    jacobi(2 * i + 1, 2 * j + 1) = jacobi(2 * i, 2 * j);  //? witch is L_ij
                 }
                 else //?diag
                 {
-                    jacobi(i, j) = get_h_ii(i);         //? witch is H_ii
-                    jacobi(i + 1, j) = get_n_ii(i);     //? witch is N_ii
-                    jacobi(i, j + 1) = get_j_ii(i);     //? witch is J_ii
-                    jacobi(i + 1, j + 1) = get_l_ii(i); //? witch is L_ii
+                    jacobi(2 * i, 2 * j) = get_h_ii(i);         //? witch is H_ii
+                    jacobi(2 * i, 2 * j + 1) = get_n_ii(i);     //? witch is N_ii
+                    jacobi(2 * i + 1, 2 * j) = get_j_ii(i);     //? witch is J_ii
+                    jacobi(2 * i + 1, 2 * j + 1) = get_l_ii(i); //? witch is L_ii
                 }
             }
             else //?PV nodes
@@ -242,17 +242,17 @@ void Network::gen_jacobi()
                 //?non-diag
                 if (i != j)
                 {
-                    jacobi(i, j) = get_h_ij(i, j);     //? witch is H_ij
-                    jacobi(i + 1, j) = get_j_ij(i, j); //? witch is N_ij
-                    jacobi(i, j + 1) = 0;              //? witch is R_ij
-                    jacobi(i + 1, j + 1) = 0;          //? witch is S_ij
+                    jacobi(2 * i, 2 * j) = get_h_ij(i, j);     //? witch is H_ij
+                    jacobi(2 * i, 2 * j + 1) = get_n_ij(i, j); //? witch is N_ij
+                    jacobi(2 * i + 1, 2 * j) = 0;              //? witch is R_ij
+                    jacobi(2 * i + 1, 2 * j + 1) = 0;          //? witch is S_ij
                 }
                 else //?diag
                 {
-                    jacobi(i, j) = get_h_ii(i);         //? witch is H_ii
-                    jacobi(i + 1, j) = get_n_ii(i);     //? witch is N_ii
-                    jacobi(i, j + 1) = get_r_ii(i);     //? witch is R_ii
-                    jacobi(i + 1, j + 1) = get_s_ii(i); //? witch is S_ii
+                    jacobi(2 * i, 2 * j) = get_h_ii(i);         //? witch is H_ii
+                    jacobi(2 * i, 2 * j + 1) = get_n_ii(i);     //? witch is N_ii
+                    jacobi(2 * i + 1, 2 * j) = get_r_ii(i);     //? witch is R_ii
+                    jacobi(2 * i + 1, 2 * j + 1) = get_s_ii(i); //? witch is S_ii
                 }
             }
         }
@@ -264,10 +264,10 @@ void Network::init_network(int num_number)
 {
     return;
 }
-Network::Network(int pv, int pq, int total) : balance_no(total-1), matrix_length(2 * total - 2), pv_node_number(pv), pq_node_number(pq), induct_network(total), node_number(total),
-                                              jacobi(matrix_length, matrix_length), delta_x(matrix_length, 1), delta_y(2 * total - 2, 1)
+Network::Network(int pv, int pq, int total) : balance_no(total - 1), matrix_length(2 * total - 2), pv_node_number(pv), pq_node_number(pq), induct_network(total), node_number(total),
+                                              jacobi(matrix_length, matrix_length), delta_x(matrix_length, 1), delta_y(matrix_length, 1)
 {
-    init_network(matrix_length);
+    init_network(node_number);
 }
 Network::~Network()
 {
