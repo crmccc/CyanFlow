@@ -32,12 +32,22 @@ class Network
 private:
 public:
     /*data*/
+    enum Node_type
+    {
+        pv,
+        pq,
+        balance
+    };
     struct node_arg
     {
         double p = 0.0;
         double q = 0.0;
         double e = 1.0;
         double f = 0.0;
+        double r = 0;
+        double angle=0;;
+        Node_type type;
+
         complex<double> u;
     };
 
@@ -106,8 +116,7 @@ void Network::gen_delta_y()
         return res;
     };
     //!issue s in get u delta
-    auto get_u_delta = [&](int i) { return sqrt(node[i].u.real() * node[i].u.real() + node[i].u.imag() * node[i].u.imag()); }; //! something wrong
-
+    auto get_u_delta = [&](int i)-> double{ return node[i].r*node[i].r-EI*EI-FI*FI;};
     for (int i = 0; i < matrix_length; i += 2)
     {
         if (i < pq_node_number) //?PQ nodes.

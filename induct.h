@@ -24,7 +24,7 @@ public:
     
     bool **book;
     int node_number;
-    map<int, complex<double>> inductance[];
+    map<int, complex<double>>* inductance;
 
     int add_line(complex<double> , int , int );
     map<int, complex<double>> &operator[](int i);
@@ -48,6 +48,7 @@ int induct::add_line(complex<double> ind, int a, int b)
 induct::induct(int node_number) : node_number(node_number)
 {
     book = new bool* [node_number];
+    inductance = new map<int,complex<double>>[node_number];
     for (int i = 0; i < node_number; ++i)
     {
         book[i] = new bool[node_number]{0};

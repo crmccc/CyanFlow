@@ -38,19 +38,19 @@ int main()
         {
             network.node[temp].p = real;
             network.node[temp].q = imag;
-            network.node[temp].node_type = Network::Node_type::pq;
+            network.node[temp].type = Network::Node_type::pq;
         }
         else if ('V' == type_c)
         {
             network.node[temp].p=real;
             network.node[temp].r= imag;
-            network.node[temp].node_type = Network::Node_type::pv;
+            network.node[temp].type = Network::Node_type::pv;
         }
         else
         {
             network.node[temp].r=real;
             network.node[temp].angle=imag;
-            network.node[temp].node_type = Network::Node_type::balance;
+            network.node[temp].type = Network::Node_type::balance;
         }
     }
 
