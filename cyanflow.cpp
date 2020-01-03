@@ -26,10 +26,13 @@ double precision;
 
 int main()
 {
+    const char file_name[]="input.txt";
+    // const char file_name[]="example.txt";
+
     cout << setw(SHOW_WIDTH); //?debug
     // FILE *input_file = fopen("input.txt", "r");
     // fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
-    fstream fin("input.txt");
+    fstream fin(file_name);
     fin >> node_number >> pv_number >> pq_number >> line_number >> precision;
     int temp;
 
@@ -129,7 +132,7 @@ void log_show_jacobi(Network &net)
     {
         for (int j = 0; j < net.matrix_length; ++j)
         {
-            cout << setw(SHOW_WIDTH)<<setprecision(SHOW_WIDTH)<<net.jacobi(i, j) << ' ';
+            cout << setw(SHOW_WIDTH)<<setprecision(3)<<net.jacobi(i, j) << ' ';
         }
         cout << '\n';
     }
