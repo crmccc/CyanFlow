@@ -26,8 +26,8 @@ double precision;
 
 int main()
 {
-    const char file_name[]="input.txt";
-    // const char file_name[]="example.txt";
+    // const char file_name[]="input.txt";
+     const char file_name[]="example.txt";
 
     cout << setw(SHOW_WIDTH); //?debug
     // FILE *input_file = fopen("input.txt", "r");
@@ -102,6 +102,9 @@ int main()
         network.renew_node_u();
         cout << "*******************************\n";
         ++iteration;
+    }
+    if(iteration>=MAX_ITERATION){
+        //todo overrun
     }
 
     return 0;
@@ -196,6 +199,9 @@ void log_show_jacobi_inverse(Network &net)
 }
 void log_show_node_arg(Network &net)
 {
+    cout<<"node_number: "<<net.node_number;
+    cout<<"\nPV_number: "<<net.pv_node_number;
+    cout<<"\nPQ_number: "<<net.pq_node_number<<'\n';
 
     int i = 0;
     for (; i < pv_number; ++i)

@@ -102,6 +102,8 @@ void Network::set_node_u(int balance_node)
         node[i].e = node[balance_node].e;
         node[i].f = node[balance_node].f;
     }
+
+    return ;
 }
 void Network::set_node_u()
 {
@@ -171,7 +173,7 @@ void Network::gen_delta_y()
 }
 void Network::gen_delta_x()
 {
-    delta_x = jacobi.inverse() * delta_y;
+    delta_x = jacobi.colPivHouseholderQr().solve(delta_y);
 
     return;
 }
@@ -179,7 +181,7 @@ void Network::gen_jacobi()
 {
     ////tobedone
     auto get_a_ii = [&](int i) {
-        double sum = GII * EI - BII * FI;
+        double sum = GII * EI - BII  * FI;
         for (int j = 0; j < node_number; ++j)
         {
             if (i != j)
