@@ -26,12 +26,12 @@ double precision;
 
 int main()
 {
-    // const char file_name[]="input.txt";
-     const char file_name[]="example.txt";
+    const char file_name[]="input.txt";
+    //  const char file_name[]="example.txt";
 
     cout << setw(SHOW_WIDTH); //?debug
-    // FILE *input_file = fopen("input.txt", "r");
-    // fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
+    FILE *input_file = fopen("input.txt", "r");
+    fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
     fstream fin(file_name);
     fin >> node_number >> pv_number >> pq_number >> line_number >> precision;
     int temp;
@@ -104,7 +104,7 @@ int main()
         ++iteration;
     }
     if(iteration>=MAX_ITERATION){
-        //todo overrun
+        //todo it doesnt converage
     }
 
     return 0;
