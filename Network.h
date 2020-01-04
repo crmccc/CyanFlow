@@ -137,7 +137,7 @@ double Network::get_e_delta_max()
 }
 void Network::gen_delta_y()
 {
-    auto get_p_delta = [&](int i) {
+    auto get_p_delta = [&](int i) -> double {
         double res = node[i].p;
         for (int j = 0; j < node_number; j++)
         {
@@ -145,7 +145,7 @@ void Network::gen_delta_y()
         }
         return res;
     };
-    auto get_q_delta = [&](int i) {
+    auto get_q_delta = [&](int i) -> double {
         double res = node[i].q;
         for (int j = 0; j < node_number; j++)
         {
@@ -180,7 +180,7 @@ void Network::gen_delta_x()
 void Network::gen_jacobi()
 {
     ////tobedone
-    auto get_a_ii = [&](int i) {
+    auto get_a_ii = [&](int i) -> double {
         double sum = __GII__ * __EI__ - __BII__ * __FI__;
         for (int j = 0; j < node_number; ++j)
         {
@@ -191,7 +191,7 @@ void Network::gen_jacobi()
         }
         return sum;
     };
-    auto get_b_ii = [&](int i) {
+    auto get_b_ii = [&](int i) -> double {
         double sum = __GII__ * __FI__ + __BII__ * __EI__;
         for (int j = 0; j < node_number; ++j)
         {
