@@ -266,7 +266,7 @@ void Network::init_network(int num_number)
 {
     return;
 }
-Network::Network(int pv, int pq, int total) : balance_no(total - 1), matrix_length(2 * total - 2), pv_node_number(pv), pq_node_number(pq), induct_network(total), node_number(total),
+Network::Network(int pq, int pv, int total) : balance_no(total - 1), matrix_length(2 * total - 2), pv_node_number(pv), pq_node_number(pq), induct_network(total), node_number(total),
                                               jacobi(matrix_length, matrix_length), delta_x(matrix_length, 1), delta_y(matrix_length, 1)
 {
     init_network(node_number);

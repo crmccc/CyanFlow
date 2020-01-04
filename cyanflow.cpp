@@ -5,8 +5,8 @@
 #include <cmath>
 #include <iomanip>
 #include "Network.h"
-#define SHOW_WIDTH 5
-#define MAX_ITERATION 1000
+constexpr auto SHOW_WIDTH = 5;
+constexpr auto MAX_ITERATION = 1000;
 using namespace Eigen;
 using namespace std;
 
@@ -27,16 +27,16 @@ double precision;
 int main()
 {
     const char file_name[]="input.txt";
-    //  const char file_name[]="example.txt";
+    //const char file_name[]="example.txt";
 
     cout << setw(SHOW_WIDTH); //?debug
     // FILE *input_file = fopen("input.txt", "r");
     // fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
     fstream fin(file_name);
-    fin >> node_number >> pv_number >> pq_number >> line_number >> precision;
+    fin >> node_number >> pq_number >> pv_number >> line_number >> precision;
     int temp;
 
-    Network network(pv_number, pq_number, node_number);
+    Network network(pq_number, pv_number, node_number);
 
     for (int i = 0; i < line_number; ++i)
     {
@@ -119,7 +119,7 @@ void log_show_inductance(Network &net)
     {
         for (int j = 0; j < node_number; ++j)
         {
-            cout << setw(10)<< net.induct_network[i][j] << ' ';
+            cout << setw(10)<< setprecision(3)<<net.induct_network[i][j] << ' ';
         }
         cout << '\n';
     }
