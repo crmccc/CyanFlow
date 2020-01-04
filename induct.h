@@ -43,10 +43,10 @@ complex<double>* induct::operator[](int i)
 }
 int induct::add_line(complex<double>& ind, int a, int b)
 {
-    inductance[a][b] -= ind;
-    inductance[b][a] = inductance[a][b];
-    inductance[a][a] += ind;
-    inductance[b][b] += ind;
+    inductance[a][b] -= 1.0/ind;
+    inductance[b][a] -= 1.0/ind;
+    inductance[a][a] += 1.0/ind;
+    inductance[b][b] += 1.0/ind;
     //// book[a][b] = book[b][a] = 1; //! self-self will not be counted.
     return 0;
 }

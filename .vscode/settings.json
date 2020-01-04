@@ -5,7 +5,8 @@
         "system_error": "cpp",
         "map": "cpp",
         "iostream": "cpp",
-        "iomanip": "cpp"
+        "iomanip": "cpp",
+        "unordered_map": "cpp"
     },
     "C_Cpp.default.cppStandard": "c++11",
     "C_Cpp.default.cStandard": "c11",

@@ -9,14 +9,14 @@
 #include <iostream>
 //ya,I know that looks stupid, but it SHUANG SI LE.
 
-#define GII induct_network[i][i].imag()
-#define GIJ induct_network[i][j].imag()
-#define BII induct_network[i][i].real()
-#define BIJ induct_network[i][j].real()
-#define EI node[i].e
-#define EJ node[j].e
-#define FI node[i].f
-#define FJ node[j].f
+#define __GII__ induct_network[i][i].real()
+#define __GIJ__ induct_network[i][j].real()
+#define __BII__ induct_network[i][i].imag()
+#define __BIJ__ induct_network[i][j].imag()
+#define __EI__ node[i].e
+#define __EJ__ node[j].e
+#define __FI__ node[i].f
+#define __FJ__ node[j].f
 #define LOCAL_INF 114514
 
 using namespace Eigen;
@@ -90,8 +90,8 @@ void Network::renew_node_u()
 {
     for (int i = 0; i < node_number - 1; ++i)
     {
-        EI += delta_x(2 * i + 1, 0);
-        FI += delta_x(2 * i, 0);
+        __EI__ += delta_x(2 * i + 1, 0);
+        __FI__ += delta_x(2 * i, 0);
     }
     return;
 }
@@ -103,7 +103,7 @@ void Network::set_node_u(int balance_node)
         node[i].f = node[balance_node].f;
     }
 
-    return ;
+    return;
 }
 void Network::set_node_u()
 {
@@ -141,7 +141,7 @@ void Network::gen_delta_y()
         double res = node[i].p;
         for (int j = 0; j < node_number; j++)
         {
-            res -= EI * (GIJ * EJ - BIJ * FJ) + FI * (GIJ * FJ + BIJ * EJ);
+            res -= __EI__ * (__GIJ__ * __EJ__ - __BIJ__ * __FJ__) + __FI__ * (__GIJ__ * __FJ__ + __BIJ__ * __EJ__);
         }
         return res;
     };
@@ -149,12 +149,12 @@ void Network::gen_delta_y()
         double res = node[i].q;
         for (int j = 0; j < node_number; j++)
         {
-            res -= FI * (GIJ * EJ - BIJ * FJ) - EI * (GIJ * FJ + BIJ * EJ);
+            res -= __FI__ * (__GIJ__ * __EJ__ - __BIJ__ * __FJ__) - __EI__ * (__GIJ__ * __FJ__ + __BIJ__ * __EJ__);
         }
         return res;
     };
     //!issue s in get u delta
-    auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - EI * EI - FI * FI; };
+    auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - __EI__ * __EI__ - __FI__ * __FI__; };
     for (int i = 0; i < node_number - 1; ++i)
     {
         if (i < pq_node_number) //?PQ nodes.
@@ -173,31 +173,31 @@ void Network::gen_delta_y()
 }
 void Network::gen_delta_x()
 {
-    delta_x = jacobi.colPivHouseholderQr().solve(delta_y);
-
+    // delta_x = jacobi.colPivHouseholderQr().solve(delta_y);
+    delta_x = jacobi.inverse() * delta_y;
     return;
 }
 void Network::gen_jacobi()
 {
     ////tobedone
     auto get_a_ii = [&](int i) {
-        double sum = GII * EI - BII  * FI;
+        double sum = __GII__ * __EI__ - __BII__ * __FI__;
         for (int j = 0; j < node_number; ++j)
         {
             if (i != j)
             {
-                sum += GIJ * EJ - BIJ * FJ;
+                sum += __GIJ__ * __EJ__ - __BIJ__ * __FJ__;
             }
         }
         return sum;
     };
     auto get_b_ii = [&](int i) {
-        double sum = GII * FI + BII * EI;
+        double sum = __GII__ * __FI__ + __BII__ * __EI__;
         for (int j = 0; j < node_number; ++j)
         {
             if (i != j)
             {
-                sum += GIJ * FJ + BIJ * EJ;
+                sum += __GIJ__ * __FJ__ + __BIJ__ * __EJ__;
             }
         }
         return sum;
@@ -211,14 +211,14 @@ void Network::gen_jacobi()
         double b = get_b_ii(i);
         for (int j = 0; j < node_number - 1; ++j)
         {
-            auto get_h_ij = [&](int i, int j) -> double { return -BIJ * EI + GIJ * FI; };
-            auto get_n_ij = [&](int i, int j) -> double { return GIJ * EI + BIJ * FI; };
-            auto get_h_ii = [&](int i) -> double { return -BII * EI + GII * FI + b; };
-            auto get_n_ii = [&](int i) -> double { return GII * EI + BII * FI + a; };
-            auto get_j_ii = [&](int i) -> double { return -GII * EI - BII * FI + a; }; //!@
-            auto get_l_ii = [&](int i) -> double { return -BII * EI + GII * FI - b; };
-            auto get_r_ii = [&](int i) -> double { return 2 * FI; };
-            auto get_s_ii = [&](int i) -> double { return 2 * EI; };
+            auto get_h_ij = [&](int i, int j) -> double { return -__BIJ__ * __EI__ + __GIJ__ * __FI__; };
+            auto get_n_ij = [&](int i, int j) -> double { return __GIJ__ * __EI__ + __BIJ__ * __FI__; };
+            auto get_h_ii = [&](int i) -> double { return -__BII__ * __EI__ + __GII__ * __FI__ + b; };
+            auto get_n_ii = [&](int i) -> double { return __GII__ * __EI__ + __BII__ * __FI__ + a; };
+            auto get_j_ii = [&](int i) -> double { return -__GII__ * __EI__ - __BII__ * __FI__ + a; }; //!@
+            auto get_l_ii = [&](int i) -> double { return -__BII__ * __EI__ + __GII__ * __FI__ - b; };
+            auto get_r_ii = [&](int i) -> double { return 2 * __FI__; };
+            auto get_s_ii = [&](int i) -> double { return 2 * __EI__; };
 
             if (k--) //?PQ nodes
             {
