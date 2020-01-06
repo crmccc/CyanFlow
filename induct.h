@@ -65,7 +65,7 @@ inline void induct::gen_tree()
             break;
         }
     }
-    delete[] tree_book;
+//    delete[] tree_book;
 
     return;
 }
@@ -95,7 +95,7 @@ induct::induct(int node_number) : node_number(node_number)
 
 induct::~induct()
 {
-     for (int i = 0; i < node_number; ++i)
+    /* for (int i = 0; i < node_number; ++i)
      {
          delete[] inductance[i];
      }
@@ -109,6 +109,6 @@ induct::~induct()
      {
          delete[] book[i];
      }
-     delete[] book;
+     delete[] book;*/
 
 }

@@ -297,8 +297,8 @@ Network::Network(int pq, int pv, int total) : balance_no(total - 1), matrix_leng
 }
 Network::~Network()
 {
-    delete[] node;
-    induct_network.~induct();
+    //delete[] node;
+    //induct_network.~induct();
 }
 complex<double>& Network::flow(int i,int j) {
     return (induct_network.flow)[i][j];
