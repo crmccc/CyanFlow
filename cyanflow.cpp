@@ -18,6 +18,8 @@ void log_show_delta_y(Network &);
 void log_show_current_precision(Network &);
 void log_show_voltage(Network &);
 void log_show_node_arg(Network &);
+void log_show_final(Network&);
+
 int node_number{0};
 int pv_number{0};
 int pq_number{0};
@@ -34,13 +36,12 @@ int main()
     // fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
     fstream fin(file_name);
     fin >> node_number >> pq_number >> pv_number >> line_number >> precision;
-    int temp;
 
     Network network(pq_number, pv_number, node_number);
 
     for (int i = 0; i < line_number; ++i)
     {
-        int from, to;
+        int from, to,temp;
         double real, imag;
         // fscanf(input_file, "%d %d %d %f %f", &temp, &from, &to, &real, &imag);
         fin >> temp >> from >> to >> real >> imag;
@@ -50,6 +51,7 @@ int main()
     for (int i = 0; i < node_number; ++i)
     {
         char type_c;
+        int temp;
         double real, imag;
         // fscanf(input_file, "%d %c %f %f", &temp, &type_c, &real, &imag);
         fin >> temp >> type_c >> real >> imag;
@@ -103,7 +105,10 @@ int main()
         cout << "*******************************\n";
         ++iteration;
     }
+    network.gen_flow();
+    log_show_final(network);
     if(iteration>=MAX_ITERATION){
+        cout << "DOESN'T CONVERAGE!";
         //todo it doesnt converage
     }
 
@@ -215,4 +220,31 @@ void log_show_node_arg(Network &net)
         cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
     }
     return;
+}
+
+void log_show_final(Network& net) {
+    cout << "node_voltage:\n";
+    for (int i = 0;i < net.node_number;++i) {
+        cout <<i+1<<"node: "<< net.node[i].u<<'\n';
+    }
+    cout << "node_power:\n";
+    for (int i = 0;i < net.node_number;++i) {
+        cout << i + 1 << "node: " << complex<double>{net.node[i].p,net.node[i].q} << '\n';
+    }
+    cout << "line loss:\n";
+    int iter = net.induct_network.start;
+    cout << iter;
+    while (iter != net.induct_network.end) {
+
+        for (int i = 0;i < node_number;++i) {
+            if (net.induct_network.book[i][iter]) {
+                cout <<"----" << net.flow(i, iter) << "---" << i;
+                net.induct_network.book[i][iter] = 0;
+                iter = i;
+            }
+        }
+    }
+
+    return;
+
 }

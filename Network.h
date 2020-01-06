@@ -17,7 +17,7 @@
 #define __EJ__ node[j].e
 #define __FI__ node[i].f
 #define __FJ__ node[j].f
-#define LOCAL_INF 114514
+constexpr auto LOCAL_INF = 114514;
 
 using namespace Eigen;
 using std::complex;
@@ -46,7 +46,7 @@ public:
         double f = 0.0;
         double r;
         double angle;
-
+        complex<double> u;
         double e_balance()
         {
             return r * cos(angle);
@@ -63,6 +63,7 @@ public:
     int matrix_length = 0;
     int node_number = 0;
     int balance_no;
+    complex<double> total_loss;
 
     induct induct_network;
     MatrixXd jacobi;
@@ -70,7 +71,7 @@ public:
     MatrixXd delta_x;
     double delta_e_max = LOCAL_INF; //!1 1 4 5 1 4!
     double delta_f_max = LOCAL_INF; //!1 1 4 5 1 4!
-    node_arg node[];                //? nodes
+    node_arg* node;                //? nodes
 
     /*function*/
     void gen_delta_y();
@@ -81,7 +82,9 @@ public:
     void set_node_u();
     double get_e_delta_max();
     double get_f_delta_max();
-
+    void gen_flow();
+    complex<double>& flow(int i, int j);
+    void gen_u();
     void init_network(int num_number);
     Network(int, int, int);
     ~Network();
@@ -153,7 +156,6 @@ void Network::gen_delta_y()
         }
         return res;
     };
-    //!issue s in get u delta
     auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - __EI__ * __EI__ - __FI__ * __FI__; };
     for (int i = 0; i < node_number - 1; ++i)
     {
@@ -203,7 +205,6 @@ void Network::gen_jacobi()
         return sum;
     };
 
-    int k = pq_node_number;
 
     for (int i = 0; i < node_number - 1; ++i)
     {
@@ -220,7 +221,7 @@ void Network::gen_jacobi()
             auto get_r_ii = [&](int i) -> double { return 2 * __FI__; };
             auto get_s_ii = [&](int i) -> double { return 2 * __EI__; };
 
-            if (k--) //?PQ nodes
+            if (i<pq_node_number) //?PQ nodes
             {
 
                 if (i != j) //?non-diag
@@ -261,6 +262,28 @@ void Network::gen_jacobi()
     }
     return;
 }
+void Network::gen_flow() {
+    gen_u();
+    induct_network.gen_tree();
+
+    for (int i = 0;i < node_number;++i) {
+        if (node[i].type == Node_type::balance) {//balance node power 
+            complex<double> sum;
+            for (int j = 0;j < node_number;++j) {
+                sum += induct_network[j][i] * node[j].u;
+            }
+            sum *= complex<double>{__EI__, __FI__};
+            node[i].p = sum.real();
+            node[i].q = sum.imag();
+
+        }
+        for (int j = 0;j < node_number;++j) {//line power loss
+            flow(i, j) = node[i].u * ((conj(node[i].u) - conj(node[j].u) )* conj(induct_network[i][j]));
+            total_loss += flow(i, j);
+        }
+    }
+    return;
+}
 
 void Network::init_network(int num_number)
 {
@@ -269,9 +292,23 @@ void Network::init_network(int num_number)
 Network::Network(int pq, int pv, int total) : balance_no(total - 1), matrix_length(2 * total - 2), pv_node_number(pv), pq_node_number(pq), induct_network(total), node_number(total),
                                               jacobi(matrix_length, matrix_length), delta_x(matrix_length, 1), delta_y(matrix_length, 1)
 {
+    node = new node_arg[node_number];
     init_network(node_number);
 }
 Network::~Network()
 {
+    delete[] node;
     induct_network.~induct();
+}
+complex<double>& Network::flow(int i,int j) {
+    return (induct_network.flow)[i][j];
+}
+void Network::gen_u() {
+    for (int i = 0;i < node_number;++i) {
+    
+            node[i].u = complex<double>{ __EI__,__FI__ };
+ 
+    }
+
+    return;
 }
