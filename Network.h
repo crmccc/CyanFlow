@@ -116,7 +116,7 @@ void Network::set_node_u()
 }
 double Network::get_f_delta_max()
 {
-    /////todo work in prograss
+
     double res = abs(delta_x(0, 0));
     for (int i = 0; i < matrix_length; i += 2)
     {
@@ -128,7 +128,7 @@ double Network::get_f_delta_max()
 }
 double Network::get_e_delta_max()
 {
-    /////todo work in prograss
+
     double res = abs(delta_x(1, 0));
     for (int i = 1; i < matrix_length; i += 2)
     {
@@ -159,12 +159,12 @@ void Network::gen_delta_y()
     auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - __EI__ * __EI__ - __FI__ * __FI__; };
     for (int i = 0; i < node_number - 1; ++i)
     {
-        if (i < pq_node_number) //?PQ nodes.
+        if (node[i].type==Node_type::pq) //?PQ nodes.
         {
             delta_y(2 * i) = get_p_delta(i);
             delta_y(2 * i + 1) = get_q_delta(i);
         }
-        else //? PV nodes
+        if (node[i].type == Node_type::pv)//? PV nodes
         {
             delta_y(2 * i) = get_p_delta(i);
             delta_y(2 * i + 1) = get_u_delta(i);
@@ -221,7 +221,7 @@ void Network::gen_jacobi()
             auto get_r_ii = [&](int i) -> double { return 2 * __FI__; };
             auto get_s_ii = [&](int i) -> double { return 2 * __EI__; };
 
-            if (i<pq_node_number) //?PQ nodes
+            if ( Node_type::pq==node[i].type) //?PQ nodes
             {
 
                 if (i != j) //?non-diag
@@ -240,7 +240,7 @@ void Network::gen_jacobi()
                     jacobi(2 * i + 1, 2 * j + 1) = get_l_ii(i); //? witch is L_ii
                 }
             }
-            else //?PV nodes
+            else if(Node_type::pv == node[i].type)//?PV nodes
             {
                 //?non-diag
                 if (i != j)
@@ -306,7 +306,7 @@ complex<double>& Network::flow(int i,int j) {
 void Network::gen_u() {
     for (int i = 0;i < node_number;++i) {
     
-            node[i].u = complex<double>{ __EI__,__FI__ };
+        node[i].u = complex<double>{ __EI__,__FI__ };
  
     }
 

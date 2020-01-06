@@ -55,19 +55,15 @@ inline void induct::gen_tree()
             }
         }
     }
-    for (;start < node_number;++start) {
-        if (tree_book[start] == 2) {
-            tree_book[start] = 0;
+    for (start=0;start < node_number;++start) {
+        if (tree_book[start] == 1) {
             break;
         }
-
     }
-    for (;end < node_number;++end) {
-        if (tree_book[end] == 2) {
-            tree_book[end] = 0;
+    for (end = 0;end < node_number;++end) {
+        if (tree_book[end] == 1&&end!=start) {
             break;
         }
-
     }
     delete[] tree_book;
 

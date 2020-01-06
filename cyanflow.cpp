@@ -237,10 +237,11 @@ void log_show_final(Network& net) {
     while (iter != net.induct_network.end) {
 
         for (int i = 0;i < node_number;++i) {
-            if (net.induct_network.book[i][iter]) {
+            if (net.induct_network.book[iter][i]) {
                 cout <<"----" << net.flow(i, iter) << "---" << i;
-                net.induct_network.book[i][iter] = 0;
+                net.induct_network.book[iter][i] = net.induct_network.book[i][iter]= 0;
                 iter = i;
+                break;
             }
         }
     }
