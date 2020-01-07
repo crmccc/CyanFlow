@@ -83,6 +83,7 @@ int main()
     int iteration = 1;
     log_show_inductance(network); //?debug
     log_show_node_arg(network);   //?debug
+    cout  << "start iteration:\n";
     while (iteration<MAX_ITERATION)
     {
         network.gen_jacobi();
@@ -209,15 +210,20 @@ void log_show_node_arg(Network &net)
     cout<<"\nPQ_number: "<<net.pq_node_number<<'\n';
 
     int i = 0;
-    for (; i < pv_number; ++i)
+    for (int i=0; i < node_number; ++i)
     {
-        cout << '[' << i << "]: p = " << net.node[i].p << " q = " << net.node[i].q << '\n';
-        cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
-    }
-    for (; i < node_number; ++i)
-    {
-        cout << '[' << i << "]: p = " << net.node[i].p << " r = " << net.node[i].r << '\n';
-        cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
+        if (net.node[i].type == Network::Node_type::pq) {
+            cout << '[' << i << "]: p = " << net.node[i].p << " q = " << net.node[i].q << '\n';
+            cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
+        }
+        if (net.node[i].type == Network::Node_type::pv) {
+            cout << '[' << i << "]: p = " << net.node[i].p << " r = " << net.node[i].r << '\n';
+            cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
+
+        }  
+        if (net.node[i].type == Network::Node_type::balance) {
+            cout << '[' << i << "]: r = " << net.node[i].r << " angle = " << net.node[i].r << '\n';
+        }
     }
     return;
 }
@@ -233,12 +239,12 @@ void log_show_final(Network& net) {
     }
     cout << "line loss:\n";
     int iter = net.induct_network.start;
-    cout << iter;
+    cout << iter+1;
     while (iter != net.induct_network.end) {
 
         for (int i = 0;i < node_number;++i) {
             if (net.induct_network.book[iter][i]) {
-                cout <<"----" << net.flow(i, iter) << "---" << i;
+                cout <<"----" << net.flow(i, iter) << "---" << i+1;
                 net.induct_network.book[iter][i] = net.induct_network.book[i][iter]= 0;
                 iter = i;
                 break;
