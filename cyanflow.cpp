@@ -86,7 +86,7 @@ int main()
         int iteration = 1;
         //log_show_inductance(network); //?debug
         //log_show_node_arg(network);   //?debug
-        cout << "start iteration:\n";
+        //cout << "start iteration:\n";//?debug
         while (iteration < MAX_ITERATION)
         {
             network.gen_jacobi();
