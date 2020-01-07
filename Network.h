@@ -175,8 +175,8 @@ void Network::gen_delta_y()
 }
 void Network::gen_delta_x()
 {
-    // delta_x = jacobi.colPivHouseholderQr().solve(delta_y);
-    delta_x = jacobi.inverse() * delta_y;
+     delta_x = jacobi.colPivHouseholderQr().solve(delta_y);
+    //delta_x = jacobi.inverse() * delta_y;
     return;
 }
 void Network::gen_jacobi()
