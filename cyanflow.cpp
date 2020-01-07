@@ -86,7 +86,7 @@ int main()
     log_show_node_arg(network);   //?debug
     while (iteration<MAX_ITERATION)
     {
-        network.gen_jacobi_mulit_thread();
+        network.gen_jacobi();
         network.gen_delta_y();
         network.gen_delta_x();
         network.get_f_delta_max();
