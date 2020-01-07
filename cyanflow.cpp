@@ -5,6 +5,7 @@
 #include <cmath>
 #include <iomanip>
 #include "Network.h"
+#include <string>
 constexpr auto SHOW_WIDTH = 5;
 constexpr auto MAX_ITERATION = 1000;
 using namespace Eigen;
@@ -28,91 +29,97 @@ double precision;
 
 int main()
 {
-    const char file_name[]="input.txt";
+    
     //const char file_name[]="example.txt";
+    for (int current_file_number = 1;current_file_number < 90;++current_file_number) {
+        string file_name = to_string(current_file_number) + string(".txt");
+        cout << setw(SHOW_WIDTH); //?debug
+        // FILE *input_file = fopen("input.txt", "r");
+        // fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
+        fstream fin(file_name);
+        fin >> node_number >> pq_number >> pv_number >> line_number >> precision;
 
-    cout << setw(SHOW_WIDTH); //?debug
-    // FILE *input_file = fopen("input.txt", "r");
-    // fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
-    fstream fin(file_name);
-    fin >> node_number >> pq_number >> pv_number >> line_number >> precision;
+        Network network(pq_number, pv_number, node_number);
 
-    Network network(pq_number, pv_number, node_number);
-
-    for (int i = 0; i < line_number; ++i)
-    {
-        int from, to,temp;
-        double real, imag;
-        // fscanf(input_file, "%d %d %d %f %f", &temp, &from, &to, &real, &imag);
-        fin >> temp >> from >> to >> real >> imag;
-        complex<double> tempcd{real, imag};
-        network.induct_network.add_line(tempcd, to - 1, from - 1);
-    }
-    for (int i = 0; i < node_number; ++i)
-    {
-        char type_c;
-        int temp;
-        double real, imag;
-        // fscanf(input_file, "%d %c %f %f", &temp, &type_c, &real, &imag);
-        fin >> temp >> type_c >> real >> imag;
-        temp -= 1;
-        if ('Q' == type_c)
+        for (int i = 0; i < line_number; ++i)
         {
-            network.node[temp].p = real;
-            network.node[temp].q = imag;
-            network.node[temp].type = Network::Node_type::pq;
+            int from, to, temp;
+            double real, imag;
+            // fscanf(input_file, "%d %d %d %f %f", &temp, &from, &to, &real, &imag);
+            fin >> temp >> from >> to >> real >> imag;
+            complex<double> tempcd{ real, imag };
+            network.induct_network.add_line(tempcd, to - 1, from - 1);
         }
-        else if ('V' == type_c)
+        for (int i = 0; i < node_number; ++i)
         {
-            network.node[temp].p = real;
-            network.node[temp].r = imag;
-            network.node[temp].type = Network::Node_type::pv;
+            char type_c;
+            int temp;
+            double real, imag;
+            // fscanf(input_file, "%d %c %f %f", &temp, &type_c, &real, &imag);
+            fin >> temp >> type_c >> real >> imag;
+            temp -= 1;
+            if ('Q' == type_c)
+            {
+                network.node[temp].p = real;
+                network.node[temp].q = imag;
+                network.node[temp].type = Network::Node_type::pq;
+            }
+            else if ('V' == type_c)
+            {
+                network.node[temp].p = real;
+                network.node[temp].r = imag;
+                network.node[temp].type = Network::Node_type::pv;
+            }
+            else
+            {
+                network.node[temp].r = real;
+                network.node[temp].angle = imag;
+                network.node[temp].e = real * cos(imag);
+                network.node[temp].f = real * sin(imag);
+                network.node[temp].type = Network::Node_type::balance;
+            }
+        }
+        fin.close();
+        //start..
+        network.set_node_u();
+        int iteration = 1;
+        //log_show_inductance(network); //?debug
+        //log_show_node_arg(network);   //?debug
+        cout << "start iteration:\n";
+        while (iteration < MAX_ITERATION)
+        {
+            network.gen_jacobi();
+            network.gen_delta_y();
+            network.gen_delta_x();
+            network.get_f_delta_max();
+            network.get_e_delta_max();
+            //cout << "interation:" << iteration << '\n'; //?debug
+            //log_show_jacobi(network);                   //?debug
+            //log_show_jacobi_inverse(network);           //?debug
+            //log_show_delta_y(network);                  //?debug
+            //log_show_delta_x(network);                  //?debug
+            //log_show_current_precision(network);        //?debug
+            //log_show_voltage(network);                  //?debug
+            if (network.delta_e_max < precision && network.delta_f_max < precision)
+            {
+                break;
+            }
+            network.renew_node_u();
+            //cout << "*******************************\n";
+            ++iteration;
+        }
+        network.gen_flow();
+        log_show_final(network);
+
+        if (iteration >= MAX_ITERATION) {
+            cout<<"data number : "<<current_file_number<<" doesn't converge\n";
+            //todo it doesnt converage
         }
         else
         {
-            network.node[temp].r = real;
-            network.node[temp].angle = imag;
-            network.node[temp].e = real * cos(imag);
-            network.node[temp].f = real * sin(imag);
-            network.node[temp].type = Network::Node_type::balance;
+            cout << "data number : " << current_file_number << "converaged at " << iteration << '\n';
         }
     }
-    fin.close();
-    //start..
-    network.set_node_u();
-    int iteration = 1;
-    log_show_inductance(network); //?debug
-    log_show_node_arg(network);   //?debug
-    cout  << "start iteration:\n";
-    while (iteration<MAX_ITERATION)
-    {
-        network.gen_jacobi();
-        network.gen_delta_y();
-        network.gen_delta_x();
-        network.get_f_delta_max();
-        network.get_e_delta_max();
-        cout << "interation:" << iteration << '\n'; //?debug
-        log_show_jacobi(network);                   //?debug
-        log_show_jacobi_inverse(network);           //?debug
-        log_show_delta_y(network);                  //?debug
-        log_show_delta_x(network);                  //?debug
-        log_show_current_precision(network);        //?debug
-        log_show_voltage(network);                  //?debug
-        if (network.delta_e_max < precision && network.delta_f_max < precision)
-        {
-            break;
-        }
-        network.renew_node_u();
-        cout << "*******************************\n";
-        ++iteration;
-    }
-    network.gen_flow();
-    log_show_final(network);
-    if(iteration>=MAX_ITERATION){
-        cout << "DOESN'T CONVERAGE!";
-        //todo it doesnt converage
-    }
-
     return 0;
 }
 
