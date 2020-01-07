@@ -118,8 +118,8 @@ int main()
         else
         {
             cout << "data number : " << current_file_number << " converaged at " << iteration << '\n';
+            log_show_final(network);
         }
-        log_show_final(network);
         cout << "***********************************\n";
     }
     return 0;
@@ -253,7 +253,7 @@ void log_show_final(Network& net) {
 
         for (int i = 0;i < net.node_number;++i) {
             if (net.induct_network.book[iter][i]) {
-                cout <<"----" << net.flow(i, iter) << "---" << i+1;
+                cout <<"----" << net.flow(iter, i) << "---" << i+1;
                 net.induct_network.book[iter][i] = net.induct_network.book[i][iter]= 0;
                 iter = i;
                 break;
