@@ -21,17 +21,18 @@ void log_show_voltage(Network &);
 void log_show_node_arg(Network &);
 void log_show_final(Network&);
 
-int node_number{0};
-int pv_number{0};
-int pq_number{0};
-int line_number{0};
-double precision;
 
 int main()
 {
     
     //const char file_name[]="example.txt";
     for (int current_file_number = 1;current_file_number < 90;++current_file_number) {
+        int node_number{ 0 };
+        int pv_number{ 0 };
+        int pq_number{ 0 };
+        int line_number{ 0 };
+        double precision;
+
         string file_name = to_string(current_file_number) + string(".txt");
         cout << setw(SHOW_WIDTH); //?debug
         // FILE *input_file = fopen("input.txt", "r");
@@ -109,7 +110,6 @@ int main()
             ++iteration;
         }
         network.gen_flow();
-        log_show_final(network);
 
         if (iteration >= MAX_ITERATION) {
             cout<<"data number : "<<current_file_number<<" doesn't converge\n";
@@ -117,8 +117,10 @@ int main()
         }
         else
         {
-            cout << "data number : " << current_file_number << "converaged at " << iteration << '\n';
+            cout << "data number : " << current_file_number << " converaged at " << iteration << '\n';
         }
+        log_show_final(network);
+        cout << "***********************************\n";
     }
     return 0;
 }
@@ -128,9 +130,9 @@ void log_show_inductance(Network &net)
     cout << setw(SHOW_WIDTH); //?debug
 
     cout << "inductance:\n";
-    for (int i = 0; i < node_number; ++i)
+    for (int i = 0; i < net.node_number; ++i)
     {
-        for (int j = 0; j < node_number; ++j)
+        for (int j = 0; j < net.node_number; ++j)
         {
             cout << setw(10)<< setprecision(3)<<net.induct_network[i][j] << ' ';
         }
@@ -217,7 +219,7 @@ void log_show_node_arg(Network &net)
     cout<<"\nPQ_number: "<<net.pq_node_number<<'\n';
 
     int i = 0;
-    for (int i=0; i < node_number; ++i)
+    for (int i=0; i < net.node_number; ++i)
     {
         if (net.node[i].type == Network::Node_type::pq) {
             cout << '[' << i << "]: p = " << net.node[i].p << " q = " << net.node[i].q << '\n';
@@ -238,18 +240,18 @@ void log_show_node_arg(Network &net)
 void log_show_final(Network& net) {
     cout << "node_voltage:\n";
     for (int i = 0;i < net.node_number;++i) {
-        cout <<i+1<<"node: "<< net.node[i].u<<'\n';
+        cout <<i+1<<" node: "<< net.node[i].u<<'\n';
     }
     cout << "node_power:\n";
     for (int i = 0;i < net.node_number;++i) {
-        cout << i + 1 << "node: " << complex<double>{net.node[i].p,net.node[i].q} << '\n';
+        cout << i + 1 << " node: " << complex<double>{net.node[i].p,net.node[i].q} << '\n';
     }
     cout << "line loss:\n";
     int iter = net.induct_network.start;
     cout << iter+1;
-    while (iter != net.induct_network.end) {
+    for(int j=0;j<net.node_number;++j) {
 
-        for (int i = 0;i < node_number;++i) {
+        for (int i = 0;i < net.node_number;++i) {
             if (net.induct_network.book[iter][i]) {
                 cout <<"----" << net.flow(i, iter) << "---" << i+1;
                 net.induct_network.book[iter][i] = net.induct_network.book[i][iter]= 0;
@@ -258,7 +260,7 @@ void log_show_final(Network& net) {
             }
         }
     }
-
+    cout << '\n';
     return;
 
 }
