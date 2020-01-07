@@ -9,7 +9,7 @@
 #endif 
 
 //#include<list>
-
+using std::map;
 using std::complex;
 //using std::list;
 
@@ -24,26 +24,37 @@ using std::complex;
 class induct
 {
 private:
-
+    complex<double> zero_complex{ 0,0 };
 public:
     
     bool **book;
     // bool book[100][100]{0};
     int node_number;
-    // vector<map<int, complex<double>>> inductance;
-     complex<double>** inductance;
+     //vector<map<int, complex<double>>> inductance;
+     map<int,complex<double> >* inductance;
+     //complex<double>** inductance;
      complex<double>** flow;
      int start;
     //complex<double> inductance[100][100];
     
     int add_line(complex<double>& , int , int );
-    complex<double>* operator[](int i);
+    map<int, complex<double>>& operator[](int i);
+    complex<double>& operator()(int i, int j);
     void gen_tree();
 
     induct(int);
     ~induct();
 };
-complex<double>* induct::operator[](int i)
+complex<double>& induct::operator()(int i, int j) {
+    if (book[i][j] == false&&i!=j) {
+        return zero_complex;
+    }
+    else {
+        return inductance[i][j];
+    }
+
+}
+map<int ,complex<double>>& induct::operator[](int i)
 {
     return inductance[i];
 }
@@ -80,12 +91,12 @@ int induct::add_line(complex<double>& ind, int a, int b)
 induct::induct(int node_number) : node_number(node_number)
 {
      book = new bool* [node_number];
-     inductance = new complex<double> *[node_number];
+     inductance = new map<int,complex<double>> [node_number];
      flow = new complex<double> * [node_number];
 
      for (int i = 0; i < node_number; ++i)
     {
-         inductance[i] = new complex<double> [node_number];
+         //inductance[i] = new complex<double> [node_number];
          flow[i] = new complex<double>[node_number];
          book[i] = new bool[node_number]{0};
          //memset(book[i], 0, node_number * sizeof(bool));

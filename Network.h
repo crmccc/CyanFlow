@@ -13,10 +13,10 @@
 #include<vector>
 //ya,I know that looks stupid, but it SHUANG SI LE.
 
-#define __GII__ induct_network[i][i].real()
-#define __GIJ__ induct_network[i][j].real()
-#define __BII__ induct_network[i][i].imag()
-#define __BIJ__ induct_network[i][j].imag()
+#define __GII__ induct_network(i,i).real()
+#define __GIJ__ induct_network(i,j).real()
+#define __BII__ induct_network(i,i).imag()
+#define __BIJ__ induct_network(i,j).imag()
 #define __EI__ node[i].e
 #define __EJ__ node[j].e
 #define __FI__ node[i].f
