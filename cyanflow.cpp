@@ -1,13 +1,12 @@
 #include <fstream>
 #include <string>
 #include <iostream>
-#include <cstdio>
-#include <cmath>
 #include <iomanip>
 #include "Network.h"
-#include <string>
+
 constexpr auto SHOW_WIDTH = 5;
 constexpr auto MAX_ITERATION = 1000;
+
 using namespace Eigen;
 using namespace std;
 
@@ -25,15 +24,14 @@ void log_show_final(Network&);
 int main()
 {
     
-    //const char file_name[]="example.txt";
-    for (int current_file_number = 1;current_file_number < 90;++current_file_number) {
+        const char file_name[]="input.txt";
         int node_number{ 0 };
         int pv_number{ 0 };
         int pq_number{ 0 };
         int line_number{ 0 };
         double precision;
 
-        string file_name = to_string(current_file_number) + string(".txt");
+        //string file_name = to_string(current_file_number) + string(".txt");
         cout << setw(SHOW_WIDTH); //?debug
         // FILE *input_file = fopen("input.txt", "r");
         // fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
@@ -88,7 +86,7 @@ int main()
     log_show_node_arg(network);   //?debug
     while (iteration<MAX_ITERATION)
     {
-        network.gen_jacobi();
+        network.gen_jacobi_mulit_thread();
         network.gen_delta_y();
         network.gen_delta_x();
         network.get_f_delta_max();
@@ -110,10 +108,10 @@ int main()
     }
     network.gen_flow();
     log_show_final(network);
-    if(iteration>=MAX_ITERATION){
+    if (iteration >= MAX_ITERATION) {
         cout << "DOESN'T CONVERAGE!";
         //todo it doesnt converage
-    
+    }
     return 0;
 }
 
@@ -213,12 +211,15 @@ void log_show_node_arg(Network &net)
     int i = 0;
     for (int i=0; i < net.node_number; ++i)
     {
-        cout << '[' << i << "]: p = " << net.node[i].p << " q = " << net.node[i].q << '\n';
-        cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
-    }
-    for (; i < node_number; ++i)
-    {
-        cout << '[' << i << "]: p = " << net.node[i].p << " r = " << net.node[i].r << '\n';
+        if (Network::Node_type::pq == net.node[i].type) {
+            cout << '[' << i << "]: p = " << net.node[i].p << " q = " << net.node[i].q << '\n';
+        }
+        if (Network::Node_type::pv == net.node[i].type) {
+            cout << '[' << i << "]: p = " << net.node[i].p << " r = " << net.node[i].r << '\n';
+        }
+        if (Network::Node_type::balance == net.node[i].type) {
+            cout << '[' << i << "]: r = " << net.node[i].p << " angle = " << net.node[i].angle << '\n';
+        }
         cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
     }
     return;

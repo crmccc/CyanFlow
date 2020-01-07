@@ -8,8 +8,9 @@
 #ifndef _GLIBCXX_COMPLEX
 #include <complex>
 #endif
-
-
+#include<future>
+#include<thread>
+#include<vector>
 //ya,I know that looks stupid, but it SHUANG SI LE.
 
 #define __GII__ induct_network[i][i].real()
@@ -25,6 +26,9 @@ constexpr auto LOCAL_INF = 114514;
 
 using namespace Eigen;
 using std::complex;
+using std::async;
+using std::future;
+using std::vector;
 /*
 *class Network.
 *OOP
@@ -34,6 +38,7 @@ using std::complex;
 class Network
 {
 private:
+    unsigned int cpu_core_number=1u;
 public:
     /*data*/
     enum Node_type
@@ -80,7 +85,10 @@ public:
     /*function*/
     void gen_delta_y();
     void gen_delta_x();
+    int  gen_jacobi_part(const int start,const int end);
     void gen_jacobi();
+    void gen_jacobi_mulit_thread(unsigned int thread_number);
+    void gen_jacobi_mulit_thread();
     void renew_node_u();
     void set_node_u(int);
     void set_node_u();
@@ -186,7 +194,42 @@ void Network::gen_delta_x()
 
     return;
 }
-void Network::gen_jacobi()
+void Network::gen_jacobi() {
+    gen_jacobi_part(0, node_number - 1);
+    return;
+}
+void Network::gen_jacobi_mulit_thread() {
+    gen_jacobi_mulit_thread(cpu_core_number);
+    return;
+}
+void Network::gen_jacobi_mulit_thread(unsigned int thread_number) {
+    if (thread_number > cpu_core_number) {
+        thread_number = cpu_core_number;
+    }
+    if (thread_number > node_number - 1) {
+        thread_number = node_number - 1;
+    }
+    int per_thread = (node_number - 1) / thread_number;
+    int last_thread = node_number-1-per_thread * thread_number+per_thread;
+    int start = 0;
+    int end = per_thread;
+    vector<future<int>> fu;
+    for (int i = 0;i < thread_number - 1;++i) {
+        fu.push_back(std::async(&Network::gen_jacobi_part,this, start, end));
+        start += per_thread;
+        end += per_thread;
+    }
+    fu.push_back(std::async(&Network::gen_jacobi_part,this, start, node_number-1));
+    for (auto& i : fu)
+    {
+        i.wait();
+        i.get();
+    }
+
+    return;
+}
+
+int Network::gen_jacobi_part(const int start,const int end)//[start,end)
 {
     ////tobedone
     auto get_a_ii = [&](int i) -> double {
@@ -213,7 +256,7 @@ void Network::gen_jacobi()
     };
 
 
-    for (int i = 0; i < node_number - 1; ++i)
+    for (int i = start; i < end; ++i)
     {
         double a = get_a_ii(i);
         double b = get_b_ii(i);
@@ -277,7 +320,7 @@ void Network::gen_jacobi()
             }
         }
     }
-    return;
+    return 0;
 }
 void Network::gen_flow() {
     gen_u();
@@ -309,6 +352,7 @@ void Network::init_network(int num_number)
 Network::Network(int pq, int pv, int total) : balance_no(total - 1), matrix_length(2 * total - 2), pv_node_number(pv), pq_node_number(pq), induct_network(total), node_number(total),
                                               jacobi(matrix_length, matrix_length), delta_x(matrix_length, 1), delta_y(matrix_length, 1)
 {
+    cpu_core_number = std::thread::hardware_concurrency();
     node = new node_arg[node_number];
     init_network(node_number);
 }
