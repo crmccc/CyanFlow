@@ -25,13 +25,13 @@ class induct
 {
 private:
     complex<double> zero_complex{ 0,0 };
+    map<int,complex<double> >* inductance;
 public:
-    
     bool **book;
+    
     // bool book[100][100]{0};
     int node_number;
      //vector<map<int, complex<double>>> inductance;
-     map<int,complex<double> >* inductance;
      //complex<double>** inductance;
      complex<double>** flow;
      int start;
