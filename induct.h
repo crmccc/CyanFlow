@@ -4,10 +4,12 @@
 #ifndef _GLIBCXX_COMPLEX
 #include <complex>
 #endif
-#include<cstring>
-#include<vector>
+#ifndef _INDUCT_CYAN_
+#define _INDUCT_CYAN_ 
+#endif 
+
 //#include<list>
-using std::vector;
+
 using std::complex;
 //using std::list;
 
@@ -22,7 +24,7 @@ using std::complex;
 class induct
 {
 private:
-    /* data */
+
 public:
     
     bool **book;
@@ -31,7 +33,7 @@ public:
     // vector<map<int, complex<double>>> inductance;
      complex<double>** inductance;
      complex<double>** flow;
-     int start,end;
+     int start;
     //complex<double> inductance[100][100];
     
     int add_line(complex<double>& , int , int );
@@ -60,11 +62,8 @@ inline void induct::gen_tree()
             break;
         }
     }
-    for (end = 0;end < node_number;++end) {
-        if (tree_book[end] == 1&&end!=start) {
-            break;
-        }
-    }
+    if (start >= node_number)
+        start = node_number-1;
 //    delete[] tree_book;
 
     return;
@@ -95,20 +94,22 @@ induct::induct(int node_number) : node_number(node_number)
 
 induct::~induct()
 {
-    /* for (int i = 0; i < node_number; ++i)
-     {
-         delete[] inductance[i];
-     }
-     delete[] inductance;
-     for (int i = 0; i < node_number; ++i)
-     {
-         delete[] flow[i];
-     }
-     delete[] flow;
-     for (int i = 0; i < node_number; ++i)
-     {
-         delete[] book[i];
-     }
-     delete[] book;*/
-
+    //try {
+    //    for (int i = 0; i < node_number; ++i)
+    //    {
+    //        delete[] inductance[i];
+    //    }
+    //    delete[] inductance;
+    //    for (int i = 0; i < node_number; ++i)
+    //    {
+    //        delete[] flow[i];
+    //    }
+    //    delete[] flow;
+    //    for (int i = 0; i < node_number; ++i)
+    //    {
+    //        delete[] book[i];
+    //    }
+    //    delete[] book;
+    //}
+    //catch (const std::exception &  e) {}
 }

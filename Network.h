@@ -1,12 +1,15 @@
 #include "Eigen/Eigen"
 #include "induct.h"
 
+#ifndef _CMATH_
 #include <cmath>
+#endif 
+
 #ifndef _GLIBCXX_COMPLEX
 #include <complex>
 #endif
-#include <complex>
-#include <iostream>
+
+
 //ya,I know that looks stupid, but it SHUANG SI LE.
 
 #define __GII__ induct_network[i][i].real()
@@ -18,6 +21,7 @@
 #define __FI__ node[i].f
 #define __FJ__ node[j].f
 constexpr auto LOCAL_INF = 114514;
+
 
 using namespace Eigen;
 using std::complex;
@@ -162,12 +166,14 @@ void Network::gen_delta_y()
         if (node[i].type==Node_type::pq) //?PQ nodes.
         {
             delta_y(2 * i) = get_p_delta(i);
-            delta_y(2 * i + 1) = get_q_delta(i);
+            delta_y(2 * i + 1) = get_q_delta(i);                    
+            assert(2 * i + 1 < matrix_length);//debug
         }
         if (node[i].type == Node_type::pv)//? PV nodes
         {
             delta_y(2 * i) = get_p_delta(i);
             delta_y(2 * i + 1) = get_u_delta(i);
+            assert(2 * i + 1 < matrix_length);//debug
         }
     }
 
@@ -177,6 +183,7 @@ void Network::gen_delta_x()
 {
      delta_x = jacobi.colPivHouseholderQr().solve(delta_y);
     //delta_x = jacobi.inverse() * delta_y;
+
     return;
 }
 void Network::gen_jacobi()
@@ -231,6 +238,9 @@ void Network::gen_jacobi()
                     jacobi(2 * i, 2 * j + 1) = get_n_ij(i, j);            //? witch is N_ij
                     jacobi(2 * i + 1, 2 * j) = -jacobi(2 * i, 2 * j + 1); //? witch is J_ij
                     jacobi(2 * i + 1, 2 * j + 1) = jacobi(2 * i, 2 * j);  //? witch is L_ij
+                    assert(2 * i +1 < matrix_length);//debug
+                    assert(2 * j + 1 < matrix_length);//debug
+
                 }
                 else //?diag
                 {
@@ -238,6 +248,9 @@ void Network::gen_jacobi()
                     jacobi(2 * i, 2 * j + 1) = get_n_ii(i);     //? witch is N_ii
                     jacobi(2 * i + 1, 2 * j) = get_j_ii(i);     //? witch is J_ii
                     jacobi(2 * i + 1, 2 * j + 1) = get_l_ii(i); //? witch is L_ii
+                    assert(2 * i + 1 < matrix_length);//debug
+                    assert(2 * j + 1 < matrix_length);//debug
+
                 }
             }
             else if(Node_type::pv == node[i].type)//?PV nodes
@@ -249,6 +262,8 @@ void Network::gen_jacobi()
                     jacobi(2 * i, 2 * j + 1) = get_n_ij(i, j); //? witch is N_ij
                     jacobi(2 * i + 1, 2 * j) = 0;              //? witch is R_ij
                     jacobi(2 * i + 1, 2 * j + 1) = 0;          //? witch is S_ij
+                    assert(2 * i + 1 < matrix_length);//debug
+                    assert(2 * j + 1 < matrix_length);//debug
                 }
                 else //?diag
                 {
@@ -256,6 +271,8 @@ void Network::gen_jacobi()
                     jacobi(2 * i, 2 * j + 1) = get_n_ii(i);     //? witch is N_ii
                     jacobi(2 * i + 1, 2 * j) = get_r_ii(i);     //? witch is R_ii
                     jacobi(2 * i + 1, 2 * j + 1) = get_s_ii(i); //? witch is S_ii
+                    assert(2 * i + 1 < matrix_length);//debug
+                    assert(2 * j + 1 < matrix_length);//debug
                 }
             }
         }
@@ -297,8 +314,11 @@ Network::Network(int pq, int pv, int total) : balance_no(total - 1), matrix_leng
 }
 Network::~Network()
 {
-    //delete[] node;
-    //induct_network.~induct();
+    //try {
+    //    delete[] node;
+    //    induct_network.~induct();
+    //}
+    //catch (const std::exception & e) {}
 }
 complex<double>& Network::flow(int i,int j) {
     return (induct_network.flow)[i][j];
