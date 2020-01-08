@@ -49,7 +49,7 @@ public:
     //complex<double> inductance[100][100];
 
     int add_line(complex<double> &, int, int);
-    void add_line_with_transformer(complex<double> &, int,int,double );
+    void add_line_with_transformer(complex<double> &ind, int f, int t, double k);
     map<int, complex<double>> &operator[](int i);
     complex<double> &operator()(int i, int j);
     void gen_tree();
@@ -113,9 +113,12 @@ inline void induct::gen_tree()
 //a,b: 2 ends of the line
 //example :
 //  ind.add_line({1,0},1,1);
-void Network:add_line_with_transformer(complex<double> &ind ,int f,int t,double k){
-    ind=ind/k;
-    add_line(ind,f,t,k);
+void induct::add_line_with_transformer(complex<double> &ind, int f, int t, double k)
+{
+    ind = ind / k;
+    add_line(ind, f, t);
+
+    return;
 }
 
 int induct::add_line(complex<double> &ind, int a, int b)

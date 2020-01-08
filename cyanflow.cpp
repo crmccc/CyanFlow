@@ -5,7 +5,8 @@
 *
 *This program is licensed under the GNU General Public License v3.0
 *
-*This head file defined and implemented an network
+*I think it will handle 100+ nodes with ease.but I had never tryed.
+*The parser.py (py3.6+) will convert any input file to my program input format.
 *
 */
 #include <fstream>
@@ -20,6 +21,10 @@ constexpr auto MAX_ITERATION = 1000;
 using namespace Eigen;
 using namespace std;
 
+const char file_name[] = "input.txt";
+const char output_file[] = "output.txt";
+ofstream fout("output.txt");
+
 void log_show_inductance(Network &);        //print inductance network.
 void log_show_jacobi(Network &);            //print jacobi matrix.
 void log_show_jacobi_inverse(Network &);    //print jacobi matrix inverses.
@@ -30,10 +35,22 @@ void log_show_voltage(Network &);           //print current voltage.
 void log_show_node_arg(Network &);          //print node data.
 void log_show_final(Network &);             //print final stage data.
 
+class highground
+{ //just for out put format
+    complex<double> &temp;
+
+public:
+    friend ostream &operator<<(ostream &stream, highground &cd)
+    { // overload << operator
+        stream << cd.temp.real() << (cd.temp.imag() >= 0 ? "+j" : "-j") << fabs(cd.temp.imag());
+        return stream;
+    };
+    highground(complex<double> &a) : temp(a){};
+};
+
 int main()
 {
 
-    const char file_name[] = "input.txt";
     int node_number{0}; //As its name suggested.
     int pv_number{0};   //As its name suggested.
     int pq_number{0};   //As its name suggested.
@@ -41,10 +58,10 @@ int main()
     double precision;   //As its name suggested.
 
     //string file_name = to_string(current_file_number) + string(".txt");
-    cout << setw(SHOW_WIDTH); //?debug
+    fout << setw(SHOW_WIDTH); //?debug
     // FILE *input_file = fopen("input.txt", "r");
     // fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
-    fstream fin(file_name);
+    ifstream fin(file_name);
     fin >> node_number >> pq_number >> pv_number >> line_number >> precision;
 
     Network network(pq_number, pv_number, node_number);
@@ -101,7 +118,7 @@ int main()
         network.gen_delta_x();                                                  //As its name suggested.
         network.get_f_delta_max();                                              //As its name suggested.
         network.get_e_delta_max();                                              //As its name suggested.
-        cout << "interation:" << iteration << '\n';                             //?debug
+        fout << "interation:" << iteration << '\n';                             //?debug
         log_show_jacobi(network);                                               //?debug
         log_show_jacobi_inverse(network);                                       //?debug
         log_show_delta_y(network);                                              //?debug
@@ -113,14 +130,14 @@ int main()
             break;
         }
         network.renew_node_u(); //As its name suggested.
-        cout << "*******************************\n";
+        fout << "*******************************\n";
         ++iteration;
     }
     network.gen_flow();
     log_show_final(network);
     if (iteration >= MAX_ITERATION) //If not converage.
     {
-        cout << "DOESN'T CONVERAGE!";
+        fout << "DOESN'T CONVERAGE!";
         //todo it doesn't converage
     }
     return 0;
@@ -128,71 +145,71 @@ int main()
 
 void log_show_inductance(Network &net)
 {
-    cout << setw(SHOW_WIDTH); //?debug
+    fout << setw(SHOW_WIDTH); //?debug
 
-    cout << "inductance:\n";
+    fout << "inductance:\n";
     for (int i = 0; i < net.node_number; ++i)
     {
         for (int j = 0; j < net.node_number; ++j)
         {
-            cout << setw(10) << setprecision(3) << net.induct_network[i][j] << ' ';
+            fout << setw(15) << setprecision(5) << highground(net.induct_network[i][j]) << '\t'; //Its complex<double>,take the highground.
         }
-        cout << '\n';
+        fout << '\n';
     }
 
     return;
 }
 void log_show_jacobi(Network &net)
 {
-    cout << setw(SHOW_WIDTH); //?debug
+    fout << setw(SHOW_WIDTH); //?debug
 
-    cout << "jacobi:\n";
+    fout << "jacobi:\n";
     for (int i = 0; i < net.matrix_length; ++i)
     {
         for (int j = 0; j < net.matrix_length; ++j)
         {
-            cout << setw(SHOW_WIDTH) << setprecision(3) << net.jacobi(i, j) << ' ';
+            fout << setw(15) << setprecision(5) << net.jacobi(i, j) << ' ';
         }
-        cout << '\n';
+        fout << '\n';
     }
     return;
 }
 void log_show_delta_x(Network &net)
 {
-    cout << setw(SHOW_WIDTH); //?debug
+    fout << setw(SHOW_WIDTH); //?debug
 
-    cout << "delta_x:\n";
+    fout << "delta_x:\n";
     for (int i = 0; i < net.matrix_length; ++i)
     {
-        cout << net.delta_x(i, 0) << '\n';
+        fout << net.delta_x(i, 0) << '\n';
     }
     return;
 }
 void log_show_delta_y(Network &net)
 {
-    cout << setw(SHOW_WIDTH); //?debug
+    fout << setw(SHOW_WIDTH); //?debug
 
-    cout << "delta_y:\n";
+    fout << "delta_y:\n";
     for (int i = 0; i < net.matrix_length; ++i)
     {
-        cout << net.delta_y(i, 0) << '\n';
+        fout << net.delta_y(i, 0) << '\n';
     }
     return;
 }
 void log_show_current_precision(Network &net)
 {
-    cout << setw(SHOW_WIDTH); //?debug
+    fout << setw(SHOW_WIDTH); //?debug
 
-    cout << "delta e:" << net.delta_e_max << '\n';
-    cout << "delta f:" << net.delta_f_max << '\n';
+    fout << "max delta e:" << net.delta_e_max << '\n';
+    fout << "max delta f:" << net.delta_f_max << '\n';
     return;
 }
 void log_show_voltage(Network &net)
 {
-    cout << setw(SHOW_WIDTH) << "voltage:\n";
+    fout << setw(SHOW_WIDTH) << "voltage:\n";
     for (int i = 0; i < net.node_number; ++i)
     {
-        cout << "e: " << net.node[i].e << "f: " << net.node[i].f << '\n';
+        fout << "node " << i + 1 << " : e: " << net.node[i].e << " f: " << net.node[i].f << '\n';
     }
 
     return;
@@ -201,59 +218,60 @@ void log_show_jacobi_inverse(Network &net)
 {
     auto &inv = net.jacobi.inverse();
 
-    cout << setw(SHOW_WIDTH); //?debug
+    fout << setw(SHOW_WIDTH); //?debug
 
-    cout << "jacobi inverse:\n";
+    fout << "jacobi inverse:\n";
     for (int i = 0; i < net.matrix_length; ++i)
     {
         for (int j = 0; j < net.matrix_length; ++j)
         {
-            cout << setw(SHOW_WIDTH) << setprecision(SHOW_WIDTH) << inv(i, j) << ' ';
+            fout << setw(15) << setprecision(5) << inv(i, j) << ' ';
         }
-        cout << '\n';
+        fout << '\n';
     }
 }
 void log_show_node_arg(Network &net)
 {
-    cout << "node_number: " << net.node_number;
-    cout << "\nPV_number: " << net.pv_node_number;
-    cout << "\nPQ_number: " << net.pq_node_number << '\n';
+    fout << "node_number: " << net.node_number;
+    fout << "\nPV_number: " << net.pv_node_number;
+    fout << "\nPQ_number: " << net.pq_node_number << '\n';
 
     int i = 0;
     for (int i = 0; i < net.node_number; ++i)
     {
         if (Network::Node_type::pq == net.node[i].type)
         {
-            cout << '[' << i << "]: p = " << net.node[i].p << " q = " << net.node[i].q << '\n';
+            fout << '[' << i + 1 << "]: PQ node : p = " << net.node[i].p << " q = " << net.node[i].q << '\n';
         }
         if (Network::Node_type::pv == net.node[i].type)
         {
-            cout << '[' << i << "]: p = " << net.node[i].p << " r = " << net.node[i].r << '\n';
+            fout << '[' << i + 1 << "]: PV node : p = " << net.node[i].p << " r = " << net.node[i].r << '\n';
         }
         if (Network::Node_type::balance == net.node[i].type)
         {
-            cout << '[' << i << "]: r = " << net.node[i].p << " angle = " << net.node[i].angle << '\n';
+            fout << '[' << i + 1 << "]: balance node : r = " << net.node[i].r << " angle = " << net.node[i].angle << '\n';
         }
-        cout << '[' << i << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
+        fout << '[' << i + 1 << "]: e = " << net.node[i].e << " f = " << net.node[i].f << '\n';
     }
     return;
 }
 
 void log_show_final(Network &net)
 {
-    cout << "node_voltage:\n";
+    fout << "\nFinal result:\n";
+    fout << "node voltage:\n";
     for (int i = 0; i < net.node_number; ++i)
     {
-        cout << i + 1 << " node: " << net.node[i].u << '\n';
+        fout << i + 1 << " node: " << highground(net.node[i].u) << '\n'; //Its complex<double>,take the highground.
     }
-    cout << "node_power:\n";
+    fout << "node power:\n";
     for (int i = 0; i < net.node_number; ++i)
     {
-        cout << i + 1 << " node: " << complex<double>{net.node[i].p, net.node[i].q} << '\n';
+        fout << i + 1 << " node: " << highground(complex<double>{net.node[i].p, net.node[i].q}) << '\n'; //Its complex<double>,take the highground.
     }
-    cout << "line loss:\n";
+    fout << "line power flow:\n";
     int iter = net.induct_network.start;
-    cout << iter + 1;
+    fout << iter + 1;
     for (int j = 0; j < net.node_number; ++j)
     {
 
@@ -261,13 +279,15 @@ void log_show_final(Network &net)
         {
             if (net.induct_network.book[iter][i])
             {
-                cout << "----" << net.flow(iter, i) << "---" << i + 1;
+                fout << " ---" << highground(net.flow(iter, i)) << "---> " << i + 1;
                 net.induct_network.book[iter][i] = net.induct_network.book[i][iter] = 0;
                 iter = i;
                 break;
             }
         }
     }
-    cout << '\n';
+    fout << '\n';
+    fout << "total power loss: " << highground(net.total_loss); //Its complex<double>,take the highground.
     return;
 }
+//just for output complex<double> in ideal format.
