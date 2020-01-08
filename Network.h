@@ -179,7 +179,8 @@ void Network::gen_delta_y()
         }
         return res;
     };
-    auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - __EI__ * __EI__ - __FI__ * __FI__; }; //Generate delta u for nodes lambda.
+    auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - __EI__ * __EI__ - __FI__ * __FI__; }; 
+    //Generate delta u for nodes lambda.
     for (int i = 0; i < node_number - 1; ++i)
     {
         if (node[i].type == Node_type::pq) //?PQ nodes.
@@ -355,11 +356,22 @@ void Network::gen_flow()
             node[i].p = sum.real();
             node[i].q = sum.imag();
         }
-        for (int j = 0; j < node_number; ++j)
-        { //Line power flow.
-            flow(i, j) = node[i].u * ((conj(node[i].u) - conj(node[j].u)) * conj(induct_network(i, j)));
-            total_loss += flow(i, j);
+        if (node[i].type == Node_type::pq)
+        { //balance node power
+            complex<double> sum;
+            for (int j = 0; j < node_number; ++j)
+            {
+                sum += induct_network(j, i) * node[j].u;
+            }
+            sum *= complex<double>{__EI__, __FI__};
+            node[i].q = sum.imag();
         }
+        for (int j = 0; j < node_number; ++j)
+        { //Line power flow.&total loss
+            flow(i, j) = node[i].u * ((conj(node[i].u) - conj(node[j].u)) * conj(induct_network(i, j)));
+            total_loss += complex<double>{node[i].p,node[i].q};
+        }
+        
     }
     return;
 }
@@ -373,7 +385,7 @@ Network::Network(int pq, int pv, int total) : balance_no(total - 1), matrix_leng
                                               induct_network(total), node_number(total),
                                               jacobi(matrix_length, matrix_length), delta_x(matrix_length, 1),
                                               delta_y(matrix_length, 1)
-{ //Implenet a network class object to you know who by you know how.
+{ //Implenet a object you know which to you know who by you know how.
     unsigned cpu_core_number = std::thread::hardware_concurrency();
     node = new node_arg[node_number];
     init_network(node_number);
