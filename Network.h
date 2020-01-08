@@ -23,16 +23,15 @@
 #include <thread>
 #include <vector>
 //ya,I know that looks stupid, but it SHUANG SI LE.
-
-#define __GII__ induct_network(i, i).real()
-#define __GIJ__ induct_network(i, j).real()
-#define __BII__ induct_network(i, i).imag()
-#define __BIJ__ induct_network(i, j).imag()
-#define __EI__ node[i].e
-#define __EJ__ node[j].e
-#define __FI__ node[i].f
-#define __FJ__ node[j].f
-constexpr auto LOCAL_INF = 114514;
+#define __GII__ induct_network(i, i).real() //As its name suggested.
+#define __GIJ__ induct_network(i, j).real() //As its name suggested.
+#define __BII__ induct_network(i, i).imag() //As its name suggested.
+#define __BIJ__ induct_network(i, j).imag() //As its name suggested.
+#define __EI__ node[i].e                    //As its name suggested.
+#define __EJ__ node[j].e                    //As its name suggested.
+#define __FI__ node[i].f                    //As its name suggested.
+#define __FJ__ node[j].f                    //As its name suggested.
+constexpr auto LOCAL_INF = 114514;          //1 1 4 5 1 4!
 
 using namespace Eigen;
 using std::async;
@@ -54,57 +53,61 @@ public:
         pv,
         pq,
         balance
-    };
+    }; //The type of the node.
     struct node_arg
     {
-        double p = 0.0;
-        double q = 0.0;
-        double e = 1.0;
-        double f = 0.0;
-        double r;
-        double angle;
-        complex<double> u;
-        double e_balance()
+        double p = 0.0;    //As its name suggested
+        double q = 0.0;    //As its name suggested
+        double e = 1.0;    //As its name suggested
+        double f = 0.0;    //As its name suggested
+        double r;          //As its name suggested
+        double angle;      //As its name suggested
+        complex<double> u; //As its name suggested
+        double e_balance() //As its name suggested
         {
             return r * cos(angle);
         }
-        double f_balance()
+        double f_balance() //As its name suggested
         {
             return r * sin(angle);
         }
-        Node_type type;
+        Node_type type; //As its name suggested,the node type
     };
 
-    int pv_node_number = 0;
-    int pq_node_number = 0;
-    int matrix_length = 0;
-    int node_number = 0;
-    int balance_no;
-    complex<double> total_loss;
+    int pv_node_number = 0;     //As its name suggested,the number of pv nodes.
+    int pq_node_number = 0;     //As its name suggested,the number of pq nodes.
+    int matrix_length = 0;      //As its name suggested,the length of matrix.
+    int node_number = 0;        //As its name suggested,the number of nodes.
+    int balance_no;             //As its name suggested,the balance node number.
+    complex<double> total_loss; //As its name suggested,the total net loss.
 
-    induct induct_network;
-    MatrixXd jacobi;
-    MatrixXd delta_y;
-    MatrixXd delta_x;
+    induct induct_network;          //As its name suggested,the inductance & power flow network.
+    MatrixXd jacobi;                //As its name suggested,the jacobi matrix.
+    MatrixXd delta_y;               //As its name suggested,the delta y martix.
+    MatrixXd delta_x;               //As its name suggested,the delta x martix.
     double delta_e_max = LOCAL_INF; //!1 1 4 5 1 4!
     double delta_f_max = LOCAL_INF; //!1 1 4 5 1 4!
-    node_arg *node;                 //? nodes
+    node_arg *node;                 // nodes
 
     /*function*/
-    void gen_delta_y();
-    void gen_delta_x();
-    int gen_jacobi_part(const int start, const int end);
-    void gen_jacobi();
+    void gen_delta_y();                                  //As its name suggested,generate the delta y.
+    void gen_delta_x();                                  //As its name suggested,generate the delta x.
+    int gen_jacobi_part(const int start, const int end); //single thread,genrate jacobi for node in range[start,end).
+    void gen_jacobi();                                   //single thread,genrate jacobi for all the nodes.
     void gen_jacobi_mulit_thread(unsigned int thread_number);
-    void gen_jacobi_mulit_thread();
-    void renew_node_u();
-    void set_node_u(int);
-    void set_node_u();
-    double get_e_delta_max();
-    double get_f_delta_max();
-    void gen_flow();
-    complex<double> &flow(int i, int j);
-    void gen_u();
+    //^Multiple thread,given theard number,genrate jacobi for all the nodes.
+    // note: if thread_number > min(cpu core count,node number-1)
+    // thread number = min(cpu core count,node number-1)
+    void gen_jacobi_mulit_thread();      //Automatic call itself with cpu core count.
+    void renew_node_u();                 //Refresh the node voltage after get delta x.
+    void set_node_u(int);                //Set inital node voltage using given node voltage.
+    void set_node_u();                   //Set inital node voltage using balance node voltage.
+    double get_e_delta_max();            //As its name suggested.
+    double get_f_delta_max();            //As its name suggested.
+    void gen_flow();                     //Generate power flow.
+    complex<double> &flow(int i, int j); //Expose the flow data.
+    void gen_u();                        //Generate voltages for nodes.
+
     void init_network(int num_number);
     Network(int, int, int);
     ~Network();
@@ -160,7 +163,7 @@ double Network::get_e_delta_max()
 }
 void Network::gen_delta_y()
 {
-    auto get_p_delta = [&](int i) -> double {
+    auto get_p_delta = [&](int i) -> double { //Generate delta p for nodes lambda.
         double res = node[i].p;
         for (int j = 0; j < node_number; j++)
         {
@@ -168,7 +171,7 @@ void Network::gen_delta_y()
         }
         return res;
     };
-    auto get_q_delta = [&](int i) -> double {
+    auto get_q_delta = [&](int i) -> double { //Generate delta q for nodes lambda.
         double res = node[i].q;
         for (int j = 0; j < node_number; j++)
         {
@@ -176,7 +179,7 @@ void Network::gen_delta_y()
         }
         return res;
     };
-    auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - __EI__ * __EI__ - __FI__ * __FI__; };
+    auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - __EI__ * __EI__ - __FI__ * __FI__; }; //Generate delta u for nodes lambda.
     for (int i = 0; i < node_number - 1; ++i)
     {
         if (node[i].type == Node_type::pq) //?PQ nodes.
@@ -195,9 +198,9 @@ void Network::gen_delta_y()
 
     return;
 }
-void Network::gen_delta_x()
+void Network::gen_delta_x() //Generate delta x for nodes
 {
-    delta_x = jacobi.colPivHouseholderQr().solve(delta_y);
+    delta_x = jacobi.colPivHouseholderQr().solve(delta_y); //Easy,fast,but single thread.
     //delta_x = jacobi.inverse() * delta_y;
 
     return;
@@ -247,8 +250,8 @@ void Network::gen_jacobi_mulit_thread(unsigned int thread_number)
 
 int Network::gen_jacobi_part(const int start, const int end) //[start,end)
 {
-    ////tobedone
-    auto get_a_ii = [&](int i) -> double {
+
+    auto get_a_ii = [&](int i) -> double { //As its name suggested.
         double sum = __GII__ * __EI__ - __BII__ * __FI__;
         for (int j = 0; j < node_number; ++j)
         {
@@ -259,7 +262,7 @@ int Network::gen_jacobi_part(const int start, const int end) //[start,end)
         }
         return sum;
     };
-    auto get_b_ii = [&](int i) -> double {
+    auto get_b_ii = [&](int i) -> double { //As its name suggested.
         double sum = __GII__ * __FI__ + __BII__ * __EI__;
         for (int j = 0; j < node_number; ++j)
         {
@@ -277,12 +280,12 @@ int Network::gen_jacobi_part(const int start, const int end) //[start,end)
         double b = get_b_ii(i);
         for (int j = 0; j < node_number - 1; ++j)
         {
-            auto get_h_ij = [&](int i, int j) -> double { return -__BIJ__ * __EI__ + __GIJ__ * __FI__; };
-            auto get_n_ij = [&](int i, int j) -> double { return __GIJ__ * __EI__ + __BIJ__ * __FI__; };
-            auto get_h_ii = [&](int i) -> double { return -__BII__ * __EI__ + __GII__ * __FI__ + b; };
-            auto get_n_ii = [&](int i) -> double { return __GII__ * __EI__ + __BII__ * __FI__ + a; };
-            auto get_j_ii = [&](int i) -> double { return -__GII__ * __EI__ - __BII__ * __FI__ + a; }; //!@
-            auto get_l_ii = [&](int i) -> double { return -__BII__ * __EI__ + __GII__ * __FI__ - b; };
+            auto get_h_ij = [&](int i, int j) -> double { return -__BIJ__ * __EI__ + __GIJ__ * __FI__; }; //As its name suggested.
+            auto get_n_ij = [&](int i, int j) -> double { return __GIJ__ * __EI__ + __BIJ__ * __FI__; };  //As its name suggested.
+            auto get_h_ii = [&](int i) -> double { return -__BII__ * __EI__ + __GII__ * __FI__ + b; };    //As its name suggested.
+            auto get_n_ii = [&](int i) -> double { return __GII__ * __EI__ + __BII__ * __FI__ + a; };     //As its name suggested.
+            auto get_j_ii = [&](int i) -> double { return -__GII__ * __EI__ - __BII__ * __FI__ + a; };    //As its name suggested.
+            auto get_l_ii = [&](int i) -> double { return -__BII__ * __EI__ + __GII__ * __FI__ - b; };    //As its name suggested.
             auto get_r_ii = [&](int i) -> double { return 2 * __FI__; };
             auto get_s_ii = [&](int i) -> double { return 2 * __EI__; };
 
@@ -291,20 +294,19 @@ int Network::gen_jacobi_part(const int start, const int end) //[start,end)
 
                 if (i != j) //?non-diag
                 {
-                    /////!this can be rewrote as inline function to make it look batter.
-                    jacobi(2 * i, 2 * j) = get_h_ij(i, j);                //? witch is H_ij
-                    jacobi(2 * i, 2 * j + 1) = get_n_ij(i, j);            //? witch is N_ij
-                    jacobi(2 * i + 1, 2 * j) = -jacobi(2 * i, 2 * j + 1); //? witch is J_ij
-                    jacobi(2 * i + 1, 2 * j + 1) = jacobi(2 * i, 2 * j);  //? witch is L_ij
+                    jacobi(2 * i, 2 * j) = get_h_ij(i, j);                //?As its name suggested, witch is H_ij.
+                    jacobi(2 * i, 2 * j + 1) = get_n_ij(i, j);            //? witch is N_ij.
+                    jacobi(2 * i + 1, 2 * j) = -jacobi(2 * i, 2 * j + 1); //? witch is J_ij.
+                    jacobi(2 * i + 1, 2 * j + 1) = jacobi(2 * i, 2 * j);  //? witch is L_ij.
                     assert(2 * i + 1 < matrix_length);                    //debug
                     assert(2 * j + 1 < matrix_length);                    //debug
                 }
                 else //?diag
                 {
-                    jacobi(2 * i, 2 * j) = get_h_ii(i);         //? witch is H_ii
-                    jacobi(2 * i, 2 * j + 1) = get_n_ii(i);     //? witch is N_ii
-                    jacobi(2 * i + 1, 2 * j) = get_j_ii(i);     //? witch is J_ii
-                    jacobi(2 * i + 1, 2 * j + 1) = get_l_ii(i); //? witch is L_ii
+                    jacobi(2 * i, 2 * j) = get_h_ii(i);         //? witch is H_ii.
+                    jacobi(2 * i, 2 * j + 1) = get_n_ii(i);     //? witch is N_ii.
+                    jacobi(2 * i + 1, 2 * j) = get_j_ii(i);     //? witch is J_ii.
+                    jacobi(2 * i + 1, 2 * j + 1) = get_l_ii(i); //? witch is L_ii.
                     assert(2 * i + 1 < matrix_length);          //debug
                     assert(2 * j + 1 < matrix_length);          //debug
                 }
@@ -314,10 +316,10 @@ int Network::gen_jacobi_part(const int start, const int end) //[start,end)
                 //?non-diag
                 if (i != j)
                 {
-                    jacobi(2 * i, 2 * j) = get_h_ij(i, j);     //? witch is H_ij
-                    jacobi(2 * i, 2 * j + 1) = get_n_ij(i, j); //? witch is N_ij
-                    jacobi(2 * i + 1, 2 * j) = 0;              //? witch is R_ij
-                    jacobi(2 * i + 1, 2 * j + 1) = 0;          //? witch is S_ij
+                    jacobi(2 * i, 2 * j) = get_h_ij(i, j);     //? witch is H_ij.
+                    jacobi(2 * i, 2 * j + 1) = get_n_ij(i, j); //? witch is N_ij.
+                    jacobi(2 * i + 1, 2 * j) = 0;              //? witch is R_ij.
+                    jacobi(2 * i + 1, 2 * j + 1) = 0;          //? witch is S_ij.
                     assert(2 * i + 1 < matrix_length);         //debug
                     assert(2 * j + 1 < matrix_length);         //debug
                 }
@@ -339,7 +341,7 @@ void Network::gen_flow()
 {
     gen_u();
     induct_network.gen_tree();
-
+    //todo calculate the q of pv node
     for (int i = 0; i < node_number; ++i)
     {
         if (node[i].type == Node_type::balance)
@@ -354,7 +356,7 @@ void Network::gen_flow()
             node[i].q = sum.imag();
         }
         for (int j = 0; j < node_number; ++j)
-        { //line power loss
+        { //Line power flow.
             flow(i, j) = node[i].u * ((conj(node[i].u) - conj(node[j].u)) * conj(induct_network(i, j)));
             total_loss += flow(i, j);
         }
@@ -366,14 +368,20 @@ void Network::init_network(int num_number)
 {
     return;
 }
-Network::Network(int pq, int pv, int total) : balance_no(total - 1), matrix_length(2 * total - 2), pv_node_number(pv), pq_node_number(pq), induct_network(total), node_number(total),
-                                              jacobi(matrix_length, matrix_length), delta_x(matrix_length, 1), delta_y(matrix_length, 1)
-{
+Network::Network(int pq, int pv, int total) : balance_no(total - 1), matrix_length(2 * total - 2),
+                                              pv_node_number(pv), pq_node_number(pq),
+                                              induct_network(total), node_number(total),
+                                              jacobi(matrix_length, matrix_length), delta_x(matrix_length, 1),
+                                              delta_y(matrix_length, 1)
+{ //Implenet a network class object to you know who by you know how.
     unsigned cpu_core_number = std::thread::hardware_concurrency();
     node = new node_arg[node_number];
     init_network(node_number);
 }
 Network::~Network()
+//always jump to double free issue.
+//Considering the program is not complex,just abaddon it.
+//Potential memory leakage.
 {
     //try {
     //    delete[] node;
