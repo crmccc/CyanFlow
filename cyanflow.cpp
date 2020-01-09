@@ -5,7 +5,7 @@
 *
 *This program is licensed under the GNU General Public License v3.0
 *
-*I think it will handle 100+ nodes with ease.but I had never tryed.
+*I think it will handle 100+ nodes with ease.but I had never tried.
 *The parser.py (py3.6+) will convert any input file to my program input format.
 *
 */
@@ -36,16 +36,15 @@ void log_show_node_arg(Network &);          //print node data.
 void log_show_final(Network &);             //print final stage data.
 
 class highground
-{ //just for out put format
+{ //just for output format.
     complex<double> &temp;
-
 public:
     friend ostream &operator<<(ostream &stream, highground &cd)
     { // overload << operator
         stream << cd.temp.real() << (cd.temp.imag() >= 0 ? "+j" : "-j") << fabs(cd.temp.imag());
         return stream;
     };
-    highground(complex<double> &a) : temp(a){};
+    highground(complex<double> a) : temp(a){};
 };
 
 int main()
@@ -58,13 +57,13 @@ int main()
     double precision;   //As its name suggested.
 
     //string file_name = to_string(current_file_number) + string(".txt");
-    fout << setw(SHOW_WIDTH); //?debug
     // FILE *input_file = fopen("input.txt", "r");
     // fscanf(input_file, "%d %d %d %d %f", &node_number, &pv_number, &pq_number, &line_number, &precision);
+    //Some boring input
     ifstream fin(file_name);
     fin >> node_number >> pq_number >> pv_number >> line_number >> precision;
 
-    Network network(pq_number, pv_number, node_number);
+    Network network(pq_number, pv_number, node_number); //Inital the network.
 
     for (int i = 0; i < line_number; ++i)
     {
@@ -113,11 +112,11 @@ int main()
     log_show_node_arg(network);   //?debug
     while (iteration < MAX_ITERATION)
     {
-        network.gen_jacobi();                                                   //As its name suggested.
-        network.gen_delta_y();                                                  //As its name suggested.
-        network.gen_delta_x();                                                  //As its name suggested.
-        network.get_f_delta_max();                                              //As its name suggested.
-        network.get_e_delta_max();                                              //As its name suggested.
+        network.gen_jacobi();                                                   //As its name suggested.Generate jacobi matrix.
+        network.gen_delta_y();                                                  //As its name suggested.Generate delta y matrix.
+        network.gen_delta_x();                                                  //As its name suggested.Generate delta x matrix.
+        network.get_f_delta_max();                                              //As its name suggested.Find max delta f.
+        network.get_e_delta_max();                                              //As its name suggested.Find max delta e.
         fout << "interation:" << iteration << '\n';                             //?debug
         log_show_jacobi(network);                                               //?debug
         log_show_jacobi_inverse(network);                                       //?debug
@@ -262,12 +261,12 @@ void log_show_final(Network &net)
     fout << "node voltage:\n";
     for (int i = 0; i < net.node_number; ++i)
     {
-        fout << i + 1 << " node: " << highground(net.node[i].u) << '\n'; //Its complex<double>,take the highground.
+        fout << i + 1 << " node: " << highground(net.node[i].u) << '\n'; //It's complex<double>,take the highground.
     }
     fout << "node power:\n";
     for (int i = 0; i < net.node_number; ++i)
     {
-        fout << i + 1 << " node: " << highground(complex<double>{net.node[i].p, net.node[i].q}) << '\n'; //Its complex<double>,take the highground.
+        fout << i + 1 << " node: " << highground(complex<double>{net.node[i].p, net.node[i].q}) << '\n'; //It's complex<double>,take the highground.
     }
     fout << "line power flow:\n";
     int iter = net.induct_network.start;
@@ -287,7 +286,6 @@ void log_show_final(Network &net)
         }
     }
     fout << '\n';
-    fout << "total power loss: " << highground(net.total_loss); //Its complex<double>,take the highground.
+    fout << "total power loss: " << highground(net.total_loss); //It's complex<double>,take the highground.
     return;
 }
-//just for output complex<double> in ideal format.
