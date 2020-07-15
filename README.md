@@ -25,5 +25,29 @@ Using <code>Egien</code> algbra library.
 
 </code>
 
+## explain:
+
+* [number of nodes] [number of lines] [precision]
+* following [number of lines] lines:
+* [node A number] [node B number] [p] [q] 
+* indicate the line power flow from A to B.
+* following [number of nodes] lines:
+* [node number] [node type] [data 1] [data 2]
+* data 1 &data 2 are depend on the node type:
+
+ |node type |data 1  | data 2|
+|:----:|:----:|:----:|
+ |PQ|value of p|value of q|
+ |PV|value of P|value of v|
+|BL|value of v|angle|
+
+# Known problem
+* Only support blance node is the last node.(course limit)
+* multi-thread may not be useable.
+* The result may not be right.
+* Potential memory leakage when free Network class.
+
+# preformence enhance ways:
+* reduce new complex.
 # Linsece
 GPL v3 
