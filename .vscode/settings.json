@@ -1,0 +1,16 @@
+{
+    "files.associations": {
+        "complex": "cpp",
+        "new": "cpp",
+        "system_error": "cpp",
+        "map": "cpp",
+        "iostream": "cpp",
+        "iomanip": "cpp",
+        "unordered_map": "cpp",
+        "iosfwd": "cpp"
+    },
+    "C_Cpp.default.cppStandard": "c++11",
+    "C_Cpp.default.cStandard": "c11",
+    "C_Cpp.default.intelliSenseMode": "gcc-x64",
+    "python.pythonPath": "/usr/bin/python3"
+}

@@ -179,7 +179,7 @@ void Network::gen_delta_y()
         }
         return res;
     };
-    auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - __EI__ * __EI__ - __FI__ * __FI__; }; 
+    auto get_u_delta = [&](int i) -> double { return node[i].r * node[i].r - __EI__ * __EI__ - __FI__ * __FI__; };
     //Generate delta u for nodes lambda.
     for (int i = 0; i < node_number - 1; ++i)
     {
@@ -356,8 +356,8 @@ void Network::gen_flow()
             node[i].p = sum.real();
             node[i].q = sum.imag();
         }
-        if (node[i].type == Node_type::pq)
-        { //balance node power
+        if (node[i].type == Node_type::pv)
+        { //pv node q
             complex<double> sum;
             for (int j = 0; j < node_number; ++j)
             {
@@ -369,9 +369,8 @@ void Network::gen_flow()
         for (int j = 0; j < node_number; ++j)
         { //Line power flow.&total loss
             flow(i, j) = node[i].u * ((conj(node[i].u) - conj(node[j].u)) * conj(induct_network(i, j)));
-            total_loss += complex<double>{node[i].p,node[i].q};
+            total_loss += complex<double>{node[i].p, node[i].q};
         }
-        
     }
     return;
 }
@@ -391,7 +390,7 @@ Network::Network(int pq, int pv, int total) : balance_no(total - 1), matrix_leng
     init_network(node_number);
 }
 Network::~Network()
-//always jump to double free issue.
+//always occur double free issue.
 //Considering the program is not complex,just abaddon it.
 //Potential memory leakage.
 {
